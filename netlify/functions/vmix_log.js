@@ -143,13 +143,13 @@ exports.handler = async function(event, context) {
         leaderboard[player_H].lags += lag == "Home" ? 1 : 0;
         for (let i = 0; i < breakHistory.Player.length; i++) 
         {
-          const breakEvent = breakHistory.Player[i];
-          if (breakEvent.Player == "Home") 
+          const breakEvent = breakHistory.Event[i];
+          if (breakHistory.Player[i] == "Home") 
           {
             leaderboard[player_H].breaks += 1;
-            if (breakEvent.event === 0) leaderboard[player_H].scratchBreaks += 1;
-            if (breakEvent.event === 1) leaderboard[player_H].dryBreaks += 1;
-            if (breakEvent.event === 2) leaderboard[player_H].breakIns += 1;
+            if (breakEvent === 0) leaderboard[player_H].scratchBreaks += 1;
+            if (breakEvent === 1) leaderboard[player_H].dryBreaks += 1;
+            if (breakEvent === 2) leaderboard[player_H].breakIns += 1;
           }
         }
 
@@ -171,13 +171,13 @@ exports.handler = async function(event, context) {
 
         for (let i = 0; i < breakHistory.Player.length; i++) 
         {
-          const breakEvent = breakHistory.Player[i];
-          if (breakEvent.Player == "Away") 
+          const breakEvent = breakHistory.Event[i];
+          if (breakHistory.Player[i] == "Away") 
           {
             leaderboard[player_A].breaks += 1;
-            if (breakEvent.event === 0) leaderboard[player_A].scratchBreaks += 1;
-            if (breakEvent.event === 1) leaderboard[player_A].dryBreaks += 1;
-            if (breakEvent.event === 2) leaderboard[player_A].breakIns += 1;
+            if (breakEvent === 0) leaderboard[player_A].scratchBreaks += 1;
+            if (breakEvent === 1) leaderboard[player_A].dryBreaks += 1;
+            if (breakEvent === 2) leaderboard[player_A].breakIns += 1;
           }
         }
       });
