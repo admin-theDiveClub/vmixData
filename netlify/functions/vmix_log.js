@@ -144,7 +144,7 @@ exports.handler = async function(event, context) {
       leaderboard[player_H].lags += lag === player_H ? 1 : 0;
       validBreakHistory.forEach(breakEvent => 
       {
-        if (breakEvent.Player === player_H) 
+        if (breakEvent.Player === "Home") 
         {
         leaderboard[player_H].breaks += 1;
         if (breakEvent.event === 0) leaderboard[player_H].scratchBreaks += 1;
@@ -171,7 +171,7 @@ exports.handler = async function(event, context) {
 
       validBreakHistory.forEach(breakEvent => 
       {
-        if (breakEvent.Player === player_A) 
+        if (breakEvent.Player === "Away") 
         {
         leaderboard[player_A].breaks += 1;
         if (breakEvent.event === 0) leaderboard[player_A].scratchBreaks += 1;
