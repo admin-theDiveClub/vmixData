@@ -169,7 +169,7 @@ exports.handler = async function(event, context) {
       leaderboard[player_A].points += result_A + apples_A;
       leaderboard[player_A].lags += lag === player_A ? 1 : 0;
 
-      breakHistory.forEach(breakEvent => 
+      validBreakHistory.forEach(breakEvent => 
       {
         if (breakEvent.Player === player_A) 
         {
