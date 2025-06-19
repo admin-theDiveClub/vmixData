@@ -122,32 +122,45 @@ exports.handler = async function(event, context) {
 
     matchesData.forEach(({ matches }) => {
       matches.forEach(match => {
-        const { player_H, player_A, result_H, result_A } = match;
+      const { player_H, player_A, result_H, result_A, apples_H = 0, apples_A = 0 } = match;
 
-        // Update frames won for Home player
-        if (!leaderboard[player_H]) {
-          leaderboard[player_H] = 0;
-        }
-        leaderboard[player_H] += result_H;
+      // Update stats for Home player
+      if (!leaderboard[player_H]) {
+        leaderboard[player_H] = { framesPlayed: 0, framesWon: 0, apples: 0, points: 0 };
+      }
+      leaderboard[player_H].framesPlayed += result_H + result_A;
+      leaderboard[player_H].framesWon += result_H;
+      leaderboard[player_H].apples += apples_H;
+      leaderboard[player_H].points += result_H + apples_H;
 
-        // Update frames won for Away player
-        if (!leaderboard[player_A]) {
-          leaderboard[player_A] = 0;
-        }
-        leaderboard[player_A] += result_A;
+      // Update stats for Away player
+      if (!leaderboard[player_A]) {
+        leaderboard[player_A] = { framesPlayed: 0, framesWon: 0, apples: 0, points: 0 };
+      }
+      leaderboard[player_A].framesPlayed += result_H + result_A;
+      leaderboard[player_A].framesWon += result_A;
+      leaderboard[player_A].apples += apples_A;
+      leaderboard[player_A].points += result_A + apples_A;
       });
     });
 
-    // Convert leaderboard object to an array and sort by frames won in descending order
+    // Convert leaderboard object to an array and sort by Points, Frames Won, Apples in descending order
     const sortedLeaderboard = Object.entries(leaderboard)
-      .map(([player, framesWon]) => ({ player, framesWon }))
-      .sort((a, b) => b.framesWon - a.framesWon);
+      .map(([player, stats]) => ({ player, ...stats }))
+      .sort((a, b) => 
+      b.points - a.points || 
+      b.framesWon - a.framesWon || 
+      b.apples - a.apples
+      );
 
     // Add rank to each player
     const rankedLeaderboard = sortedLeaderboard.map((entry, index) => ({
       rank: index + 1,
       player: entry.player,
-      framesWon: entry.framesWon
+      framesPlayed: entry.framesPlayed,
+      framesWon: entry.framesWon,
+      apples: entry.apples,
+      points: entry.points
     }));
 
     const data = rankedLeaderboard;
