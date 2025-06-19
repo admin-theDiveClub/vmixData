@@ -4,40 +4,47 @@ exports.handler = async function(event, context) {
   const supabaseUrl = 'https://db.thediveclub.org';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tdmx3dXRudW91eW51a290ZGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk2OTgyMzEsImV4cCI6MjA1NTI3NDIzMX0.qyEDq8w67G2BMfyHO7Iyvd3nFUSd0sulJhGl0eGkbfA';
 
-  const fetchPlayer = () =>
-    new Promise
-    (
-      (resolve, reject) => 
+  const fetchPlayer = () => new Promise
+  (
+    (resolve, reject) => 
+    {
+      var _table = 'tbl_players';
+      var _field = 'username';
+      var _value = 'yuvannaidoo@gmail.com';
+      
+      const options = 
       {
-        var _table = 'tbl_players';
-        var _field = 'username';
-        var _value = 'yuvannaidoo@gmail.com';
-        
-        const options = 
+        hostname: 'db.thediveclub.org',
+        path: `/rest/v1/${_table}?${_field}=eq.${_value}`,
+        method: 'GET',
+        headers: 
         {
-          hostname: 'db.thediveclub.org',
-          path: `/rest/v1/${_table}?${_field}=eq.${_value}`,
-          method: 'GET',
-          headers: 
-          {
-            apikey: supabaseKey,
-            Authorization: `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=representation'
-          }
-        };
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation'
+        }
+      };
 
-        const req = https.request(options, res => 
+      const req = https.request(options, res => 
+      {
+        let body = '';
+        res.on('data', function(chunk) 
         {
-          let body = '';
-          res.on('data', chunk => (body += chunk));
-          res.on('end', () => resolve(JSON.parse(body)));
+          body += chunk;
+          body = body[0];
         });
 
-        req.on('error', err => reject(err));
-        req.end();
-      }
-    );
+        res.on('end', function() 
+        {
+          resolve(JSON.parse(body));
+        });
+      });
+
+      req.on('error', err => reject(err));
+      req.end();
+    }
+  );
 
   try 
   {
