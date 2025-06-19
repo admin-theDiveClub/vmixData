@@ -124,60 +124,60 @@ exports.handler = async function(event, context) {
     {
       matches.forEach(match => 
       {
-      const { player_H, player_A, result_H, result_A, apples_H = 0, apples_A = 0, lag, breakHistory } = match;
+        const { player_H, player_A, result_H, result_A, apples_H = 0, apples_A = 0, lag, breakHistory } = match;
 
-      // Update stats for Home player
-      if (!leaderboard[player_H]) 
-      {
-        leaderboard[player_H] = { 
-        matchesPlayed: 0, matchesWon: 0, framesPlayed: 0, framesWon: 0, apples: 0, points: 0, lags: 0, breaks: 0, scratchBreaks: 0, dryBreaks: 0, breakIns: 0 
-        };
-      }
-
-      leaderboard[player_H].matchesPlayed += 1;
-      leaderboard[player_H].matchesWon += result_H > result_A ? 1 : 0;
-      leaderboard[player_H].framesPlayed += result_H + result_A;
-      leaderboard[player_H].framesWon += result_H;
-      leaderboard[player_H].apples += apples_H;
-      leaderboard[player_H].points += result_H + apples_H;
-      leaderboard[player_H].lags += lag == "Home" ? 1 : 0;
-      breakHistory.forEach(breakEvent => 
-      {
-        if (breakEvent.Player == "Home") 
+        // Update stats for Home player
+        if (!leaderboard[player_H]) 
         {
-          leaderboard[player_H].breaks += 1;
-          if (breakEvent.event === 0) leaderboard[player_H].scratchBreaks += 1;
-          if (breakEvent.event === 1) leaderboard[player_H].dryBreaks += 1;
-          if (breakEvent.event === 2) leaderboard[player_H].breakIns += 1;
+          leaderboard[player_H] = { 
+          matchesPlayed: 0, matchesWon: 0, framesPlayed: 0, framesWon: 0, apples: 0, points: 0, lags: 0, breaks: 0, scratchBreaks: 0, dryBreaks: 0, breakIns: 0 
+          };
         }
-      });
 
-      // Update stats for Away player
-      if (!leaderboard[player_A]) 
-      {
-        leaderboard[player_A] = { 
-        matchesPlayed: 0, matchesWon: 0, framesPlayed: 0, framesWon: 0, apples: 0, points: 0, lags: 0, breaks: 0, scratchBreaks: 0, dryBreaks: 0, breakIns: 0 
-        };
-      }
-
-      leaderboard[player_A].matchesPlayed += 1;
-      leaderboard[player_A].matchesWon += result_A > result_H ? 1 : 0;
-      leaderboard[player_A].framesPlayed += result_H + result_A;
-      leaderboard[player_A].framesWon += result_A;
-      leaderboard[player_A].apples += apples_A;
-      leaderboard[player_A].points += result_A + apples_A;
-      leaderboard[player_A].lags += lag == "Away" ? 1 : 0;
-
-      breakHistory.forEach(breakEvent => 
-      {
-        if (breakEvent.Player == "Away") 
+        leaderboard[player_H].matchesPlayed += 1;
+        leaderboard[player_H].matchesWon += result_H > result_A ? 1 : 0;
+        leaderboard[player_H].framesPlayed += result_H + result_A;
+        leaderboard[player_H].framesWon += result_H;
+        leaderboard[player_H].apples += apples_H;
+        leaderboard[player_H].points += result_H + apples_H;
+        leaderboard[player_H].lags += lag == "Home" ? 1 : 0;
+        breakHistory.Player.forEach(breakEvent => 
         {
-          leaderboard[player_A].breaks += 1;
-          if (breakEvent.event === 0) leaderboard[player_A].scratchBreaks += 1;
-          if (breakEvent.event === 1) leaderboard[player_A].dryBreaks += 1;
-          if (breakEvent.event === 2) leaderboard[player_A].breakIns += 1;
+          if (breakEvent.Player == "Home") 
+          {
+            leaderboard[player_H].breaks += 1;
+            if (breakEvent.event === 0) leaderboard[player_H].scratchBreaks += 1;
+            if (breakEvent.event === 1) leaderboard[player_H].dryBreaks += 1;
+            if (breakEvent.event === 2) leaderboard[player_H].breakIns += 1;
+          }
+        });
+
+        // Update stats for Away player
+        if (!leaderboard[player_A]) 
+        {
+          leaderboard[player_A] = { 
+          matchesPlayed: 0, matchesWon: 0, framesPlayed: 0, framesWon: 0, apples: 0, points: 0, lags: 0, breaks: 0, scratchBreaks: 0, dryBreaks: 0, breakIns: 0 
+          };
         }
-      });
+
+        leaderboard[player_A].matchesPlayed += 1;
+        leaderboard[player_A].matchesWon += result_A > result_H ? 1 : 0;
+        leaderboard[player_A].framesPlayed += result_H + result_A;
+        leaderboard[player_A].framesWon += result_A;
+        leaderboard[player_A].apples += apples_A;
+        leaderboard[player_A].points += result_A + apples_A;
+        leaderboard[player_A].lags += lag == "Away" ? 1 : 0;
+
+        breakHistory.Player.forEach(breakEvent => 
+        {
+          if (breakEvent.Player == "Away") 
+          {
+            leaderboard[player_A].breaks += 1;
+            if (breakEvent.event === 0) leaderboard[player_A].scratchBreaks += 1;
+            if (breakEvent.event === 1) leaderboard[player_A].dryBreaks += 1;
+            if (breakEvent.event === 2) leaderboard[player_A].breakIns += 1;
+          }
+        });
       });
     });
 
