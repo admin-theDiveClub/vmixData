@@ -124,13 +124,13 @@ exports.handler = async function(event, context) {
     {
       matches.forEach(match => 
       {
-        const { player_H, player_A, result_H, result_A, apples_H = 0, apples_A = 0, lag, breakHistory } = match;
+        const { player_H, player_A, result_H, result_A, apples_H = 0, apples_A = 0, lag, breakHistory, goldenBreak_H = 0, goldenBreak_A = 0 } = match;
 
         // Update stats for Home player
         if (!leaderboard[player_H]) 
         {
           leaderboard[player_H] = { 
-          matchesPlayed: 0, matchesWon: 0, framesPlayed: 0, framesWon: 0, apples: 0, points: 0, lags: 0, breaks: 0, scratchBreaks: 0, dryBreaks: 0, breakIns: 0 
+          matchesPlayed: 0, matchesWon: 0, framesPlayed: 0, framesWon: 0, apples: 0, points: 0, lags: 0, breaks: 0, scratchBreaks: 0, dryBreaks: 0, breakIns: 0, goldenBreaks: 0 
           };
         }
 
@@ -139,17 +139,19 @@ exports.handler = async function(event, context) {
         leaderboard[player_H].framesPlayed += result_H + result_A;
         leaderboard[player_H].framesWon += result_H;
         leaderboard[player_H].apples += apples_H;
-        leaderboard[player_H].points += result_H + apples_H;
+        leaderboard[player_H].points += result_H + apples_H + goldenBreak_H;
         leaderboard[player_H].lags += lag == "Home" ? 1 : 0;
+        leaderboard[player_H].goldenBreaks += goldenBreak_H;
+
         for (let i = 0; i < breakHistory.Player.length; i++) 
         {
           const breakEvent = breakHistory.Event[i];
           if (breakHistory.Player[i] == "Home") 
           {
-            leaderboard[player_H].breaks += 1;
-            if (breakEvent === 0) leaderboard[player_H].scratchBreaks += 1;
-            if (breakEvent === 1) leaderboard[player_H].dryBreaks += 1;
-            if (breakEvent === 2) leaderboard[player_H].breakIns += 1;
+        leaderboard[player_H].breaks += 1;
+        if (breakEvent === 0) leaderboard[player_H].scratchBreaks += 1;
+        if (breakEvent === 1) leaderboard[player_H].dryBreaks += 1;
+        if (breakEvent === 2) leaderboard[player_H].breakIns += 1;
           }
         }
 
@@ -157,7 +159,7 @@ exports.handler = async function(event, context) {
         if (!leaderboard[player_A]) 
         {
           leaderboard[player_A] = { 
-          matchesPlayed: 0, matchesWon: 0, framesPlayed: 0, framesWon: 0, apples: 0, points: 0, lags: 0, breaks: 0, scratchBreaks: 0, dryBreaks: 0, breakIns: 0 
+          matchesPlayed: 0, matchesWon: 0, framesPlayed: 0, framesWon: 0, apples: 0, points: 0, lags: 0, breaks: 0, scratchBreaks: 0, dryBreaks: 0, breakIns: 0, goldenBreaks: 0 
           };
         }
 
@@ -166,18 +168,19 @@ exports.handler = async function(event, context) {
         leaderboard[player_A].framesPlayed += result_H + result_A;
         leaderboard[player_A].framesWon += result_A;
         leaderboard[player_A].apples += apples_A;
-        leaderboard[player_A].points += result_A + apples_A;
+        leaderboard[player_A].points += result_A + apples_A + goldenBreak_A;
         leaderboard[player_A].lags += lag == "Away" ? 1 : 0;
+        leaderboard[player_A].goldenBreaks += goldenBreak_A;
 
         for (let i = 0; i < breakHistory.Player.length; i++) 
         {
           const breakEvent = breakHistory.Event[i];
           if (breakHistory.Player[i] == "Away") 
           {
-            leaderboard[player_A].breaks += 1;
-            if (breakEvent === 0) leaderboard[player_A].scratchBreaks += 1;
-            if (breakEvent === 1) leaderboard[player_A].dryBreaks += 1;
-            if (breakEvent === 2) leaderboard[player_A].breakIns += 1;
+        leaderboard[player_A].breaks += 1;
+        if (breakEvent === 0) leaderboard[player_A].scratchBreaks += 1;
+        if (breakEvent === 1) leaderboard[player_A].dryBreaks += 1;
+        if (breakEvent === 2) leaderboard[player_A].breakIns += 1;
           }
         }
       });
