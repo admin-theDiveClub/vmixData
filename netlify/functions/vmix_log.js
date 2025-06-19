@@ -120,33 +120,85 @@ exports.handler = async function(event, context) {
     ];*/
     const leaderboard = {};
 
-    matchesData.forEach(({ matches }) => {
-      matches.forEach(match => {
-      const { player_H, player_A, result_H, result_A, apples_H = 0, apples_A = 0 } = match;
+    matchesData.forEach(({ matches }) => 
+    {
+      matches.forEach(match => 
+      {
+      const { player_H, player_A, result_H, result_A, apples_H = 0, apples_A = 0, lag, breakHistory = [] } = match;
 
       // Update stats for Home player
-      if (!leaderboard[player_H]) {
-        leaderboard[player_H] = { framesPlayed: 0, framesWon: 0, apples: 0, points: 0 };
+      if (!leaderboard[player_H]) 
+      {
+        leaderboard[player_H] = { 
+        matchesPlayed: 0, matchesWon: 0, framesPlayed: 0, framesWon: 0, apples: 0, points: 0, lags: 0, breaks: 0, scratchBreaks: 0, dryBreaks: 0, breakIns: 0 
+        };
       }
+
+      leaderboard[player_H].matchesPlayed += 1;
+      leaderboard[player_H].matchesWon += result_H > result_A ? 1 : 0;
       leaderboard[player_H].framesPlayed += result_H + result_A;
       leaderboard[player_H].framesWon += result_H;
       leaderboard[player_H].apples += apples_H;
       leaderboard[player_H].points += result_H + apples_H;
+      leaderboard[player_H].lags += lag === player_H ? 1 : 0;
+
+      breakHistory.forEach(breakEvent => 
+      {
+        if (breakEvent.Player === player_H) 
+        {
+        leaderboard[player_H].breaks += 1;
+        if (breakEvent.event === 0) leaderboard[player_H].scratchBreaks += 1;
+        if (breakEvent.event === 1) leaderboard[player_H].dryBreaks += 1;
+        if (breakEvent.event === 2) leaderboard[player_H].breakIns += 1;
+        }
+      });
 
       // Update stats for Away player
-      if (!leaderboard[player_A]) {
-        leaderboard[player_A] = { framesPlayed: 0, framesWon: 0, apples: 0, points: 0 };
+      if (!leaderboard[player_A]) 
+      {
+        leaderboard[player_A] = { 
+        matchesPlayed: 0, matchesWon: 0, framesPlayed: 0, framesWon: 0, apples: 0, points: 0, lags: 0, breaks: 0, scratchBreaks: 0, dryBreaks: 0, breakIns: 0 
+        };
       }
+
+      leaderboard[player_A].matchesPlayed += 1;
+      leaderboard[player_A].matchesWon += result_A > result_H ? 1 : 0;
       leaderboard[player_A].framesPlayed += result_H + result_A;
       leaderboard[player_A].framesWon += result_A;
       leaderboard[player_A].apples += apples_A;
       leaderboard[player_A].points += result_A + apples_A;
+      leaderboard[player_A].lags += lag === player_A ? 1 : 0;
+
+      breakHistory.forEach(breakEvent => 
+      {
+        if (breakEvent.Player === player_A) 
+        {
+        leaderboard[player_A].breaks += 1;
+        if (breakEvent.event === 0) leaderboard[player_A].scratchBreaks += 1;
+        if (breakEvent.event === 1) leaderboard[player_A].dryBreaks += 1;
+        if (breakEvent.event === 2) leaderboard[player_A].breakIns += 1;
+        }
+      });
       });
     });
 
     // Convert leaderboard object to an array and sort by Points, Frames Won, Apples in descending order
     const sortedLeaderboard = Object.entries(leaderboard)
-      .map(([player, stats]) => ({ player, ...stats }))
+      .map(([player, stats]) => ({
+      player,
+      matchesPlayed: stats.matchesPlayed,
+      matchesWon: stats.matchesWon,
+      matchWinRate: ((stats.matchesWon / stats.matchesPlayed) * 100).toFixed(2),
+      framesPlayed: stats.framesPlayed,
+      framesWon: stats.framesWon,
+      framesWinRate: ((stats.framesWon / stats.framesPlayed) * 100).toFixed(2),
+      lags: stats.lags,
+      breaks: stats.breaks,
+      scratchBreaks: stats.scratchBreaks,
+      dryBreaks: stats.dryBreaks,
+      breakIns: stats.breakIns,
+      points: stats.points
+      }))
       .sort((a, b) => 
       b.points - a.points || 
       b.framesWon - a.framesWon || 
@@ -157,9 +209,17 @@ exports.handler = async function(event, context) {
     const rankedLeaderboard = sortedLeaderboard.map((entry, index) => ({
       rank: index + 1,
       player: entry.player,
+      matchesPlayed: entry.matchesPlayed,
+      matchesWon: entry.matchesWon,
+      matchWinRate: entry.matchWinRate,
       framesPlayed: entry.framesPlayed,
       framesWon: entry.framesWon,
-      apples: entry.apples,
+      framesWinRate: entry.framesWinRate,
+      lags: entry.lags,
+      breaks: entry.breaks,
+      scratchBreaks: entry.scratchBreaks,
+      dryBreaks: entry.dryBreaks,
+      breakIns: entry.breakIns,
       points: entry.points
     }));
 
