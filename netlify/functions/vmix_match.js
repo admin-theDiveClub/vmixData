@@ -57,7 +57,7 @@ exports.handler = async function(event, context) {
   try 
   {
     const match = await fetchMatch('127ed36c-96a9-4892-80f9-e1cdd022f7e7');
-    const data = matchesData;
+    const data = match;
 
     const response =
     {
