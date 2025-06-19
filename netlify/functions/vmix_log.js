@@ -141,7 +141,7 @@ exports.handler = async function(event, context) {
       leaderboard[player_H].apples += apples_H;
       leaderboard[player_H].points += result_H + apples_H;
       leaderboard[player_H].lags += lag == "Home" ? 1 : 0;
-      breakEvent.forEach(breakEvent => 
+      breakHistory.forEach(breakEvent => 
       {
         if (breakEvent.Player == "Home") 
         {
@@ -168,7 +168,7 @@ exports.handler = async function(event, context) {
       leaderboard[player_A].points += result_A + apples_A;
       leaderboard[player_A].lags += lag == "Away" ? 1 : 0;
 
-      breakEvent.forEach(breakEvent => 
+      breakHistory.forEach(breakEvent => 
       {
         if (breakEvent.Player == "Away") 
         {
