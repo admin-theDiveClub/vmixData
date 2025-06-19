@@ -32,12 +32,13 @@ exports.handler = async function(event, context) {
         res.on('data', function(chunk) 
         {
           body += chunk;
-          body = body[0];
         });
 
         res.on('end', function() 
         {
-          resolve(JSON.parse(body));
+          const data = JSON.parse(body);
+          const playerData = data[0];
+          resolve(playerData);
         });
       });
 
