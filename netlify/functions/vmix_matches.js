@@ -10,7 +10,7 @@ exports.handler = async function(event, context) {
     {
         var _table = 'tbl_tournaments';
         var _field = 'leagueID';
-        var _value = '74f79467-9c26-421b-bcef-389bb40fe1ad';
+        var _value = "74f79467-9c26-421b-bcef-389bb40fe1ad";
         
         const options = 
         {
