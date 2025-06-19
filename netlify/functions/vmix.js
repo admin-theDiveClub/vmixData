@@ -4,18 +4,19 @@ exports.handler = async function(event, context) {
   const supabaseUrl = 'https://db.thediveclub.org';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tdmx3dXRudW91eW51a290ZGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk2OTgyMzEsImV4cCI6MjA1NTI3NDIzMX0.qyEDq8w67G2BMfyHO7Iyvd3nFUSd0sulJhGl0eGkbfA';
 
-  const fetchPlayer = () => new Promise
+  const fetchData = () => new Promise
   (
     (resolve, reject) => 
     {
-      var _table = 'tbl_players';
-      var _field = 'username';
+      var _table = 'tbl_matches';
+      var _field1 = 'player_H';
+      var _field2 = 'player_A';
       var _value = 'yuvannaidoo@gmail.com';
       
       const options = 
       {
         hostname: 'db.thediveclub.org',
-        path: `/rest/v1/${_table}?${_field}=eq.${_value}`,
+        path: `/rest/v1/${_table}?or=(${_field1}.eq.${_value},${_field2}.eq.${_value})`,
         method: 'GET',
         headers: 
         {
@@ -37,8 +38,7 @@ exports.handler = async function(event, context) {
         res.on('end', function() 
         {
           const data = JSON.parse(body);
-          const playerData = data[0];
-          resolve(playerData);
+          resolve(data);
         });
       });
 
@@ -49,14 +49,15 @@ exports.handler = async function(event, context) {
 
   try 
   {
-    const playerData = await fetchPlayer();
+    const playerData = await fetchData();
 
-    const data = 
+    /*const data = 
     [
       { Player: 'Yuvan', Score: 14 },
       { Player: 'Gershwin', Score: 9 },
       { playerData }
-    ];
+    ];*/
+    const data = playerData;
 
     const response =
     {
