@@ -109,7 +109,7 @@ exports.handler = async function(event, context) {
     {
         const tournamentID = round.id; // Assuming 'id' is the field in roundsData that corresponds to tournamentID
         const matches = await fetchMatches(tournamentID);
-        matchesData.push({ matches });
+        matchesData.push(matches);
     }
 
     /*const data = 
