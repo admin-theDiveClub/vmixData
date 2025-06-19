@@ -124,7 +124,8 @@ exports.handler = async function(event, context) {
     {
       matches.forEach(match => 
       {
-      const { player_H, player_A, result_H, result_A, apples_H = 0, apples_A = 0, lag, breakHistory = [] } = match;
+      const { player_H, player_A, result_H, result_A, apples_H = 0, apples_A = 0, lag, breakHistory } = match;
+      const validBreakHistory = Array.isArray(breakHistory) ? breakHistory : [];
 
       // Update stats for Home player
       if (!leaderboard[player_H]) 
@@ -141,8 +142,7 @@ exports.handler = async function(event, context) {
       leaderboard[player_H].apples += apples_H;
       leaderboard[player_H].points += result_H + apples_H;
       leaderboard[player_H].lags += lag === player_H ? 1 : 0;
-
-      breakHistory.forEach(breakEvent => 
+      validBreakHistory.forEach(breakEvent => 
       {
         if (breakEvent.Player === player_H) 
         {
