@@ -141,8 +141,9 @@ exports.handler = async function(event, context) {
         leaderboard[player_H].apples += apples_H;
         leaderboard[player_H].points += result_H + apples_H;
         leaderboard[player_H].lags += lag == "Home" ? 1 : 0;
-        breakHistory.Player.forEach(breakEvent => 
+        for (let i = 0; i < breakHistory.Player.length; i++) 
         {
+          const breakEvent = breakHistory.Player[i];
           if (breakEvent.Player == "Home") 
           {
             leaderboard[player_H].breaks += 1;
@@ -150,7 +151,7 @@ exports.handler = async function(event, context) {
             if (breakEvent.event === 1) leaderboard[player_H].dryBreaks += 1;
             if (breakEvent.event === 2) leaderboard[player_H].breakIns += 1;
           }
-        });
+        }
 
         // Update stats for Away player
         if (!leaderboard[player_A]) 
@@ -168,8 +169,9 @@ exports.handler = async function(event, context) {
         leaderboard[player_A].points += result_A + apples_A;
         leaderboard[player_A].lags += lag == "Away" ? 1 : 0;
 
-        breakHistory.Player.forEach(breakEvent => 
+        for (let i = 0; i < breakHistory.Player.length; i++) 
         {
+          const breakEvent = breakHistory.Player[i];
           if (breakEvent.Player == "Away") 
           {
             leaderboard[player_A].breaks += 1;
@@ -177,7 +179,7 @@ exports.handler = async function(event, context) {
             if (breakEvent.event === 1) leaderboard[player_A].dryBreaks += 1;
             if (breakEvent.event === 2) leaderboard[player_A].breakIns += 1;
           }
-        });
+        }
       });
     });
 
