@@ -103,21 +103,15 @@ exports.handler = async function(event, context) {
   try 
   {
     const roundsData = await fetchRounds();
-    const matchesData = [];
+    let matchesData = [];
 
     for (const round of roundsData) 
     {
         const tournamentID = round.id; // Assuming 'id' is the field in roundsData that corresponds to tournamentID
         const matches = await fetchMatches(tournamentID);
-        matchesData.push(matches);
+        matchesData = matchesData.concat(matches); // Flatten the matches into the top-level array
     }
 
-    /*const data = 
-    [
-      { Player: 'Yuvan', Score: 14 },
-      { Player: 'Gershwin', Score: 9 },
-      { playerData }
-    ];*/
     const data = matchesData;
 
     const response =
