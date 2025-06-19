@@ -201,6 +201,7 @@ exports.handler = async function(event, context) {
       scratchBreaks: stats.scratchBreaks,
       dryBreaks: stats.dryBreaks,
       breakIns: stats.breakIns,
+      goldenBreaks: stats.goldenBreaks,
       points: stats.points
       }))
       .sort((a, b) => 
@@ -224,6 +225,7 @@ exports.handler = async function(event, context) {
       scratchBreaks: entry.scratchBreaks,
       dryBreaks: entry.dryBreaks,
       breakIns: entry.breakIns,
+      goldenBreaks: entry.goldenBreaks,
       points: entry.points
     }));
 
