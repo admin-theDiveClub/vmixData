@@ -146,10 +146,10 @@ exports.handler = async function(event, context) {
       {
         if (breakEvent.Player === "Home") 
         {
-        leaderboard[player_H].breaks += 1;
-        if (breakEvent.event === 0) leaderboard[player_H].scratchBreaks += 1;
-        if (breakEvent.event === 1) leaderboard[player_H].dryBreaks += 1;
-        if (breakEvent.event === 2) leaderboard[player_H].breakIns += 1;
+          leaderboard[player_H].breaks += 1;
+          if (breakEvent.event === 0) leaderboard[player_H].scratchBreaks += 1;
+          if (breakEvent.event === 1) leaderboard[player_H].dryBreaks += 1;
+          if (breakEvent.event === 2) leaderboard[player_H].breakIns += 1;
         }
       });
 
@@ -167,16 +167,16 @@ exports.handler = async function(event, context) {
       leaderboard[player_A].framesWon += result_A;
       leaderboard[player_A].apples += apples_A;
       leaderboard[player_A].points += result_A + apples_A;
-      leaderboard[player_A].lags += lag === player_A ? 1 : 0;
+      leaderboard[player_A].lags += lag === "Away" ? 1 : 0;
 
       validBreakHistory.forEach(breakEvent => 
       {
         if (breakEvent.Player === "Away") 
         {
-        leaderboard[player_A].breaks += 1;
-        if (breakEvent.event === 0) leaderboard[player_A].scratchBreaks += 1;
-        if (breakEvent.event === 1) leaderboard[player_A].dryBreaks += 1;
-        if (breakEvent.event === 2) leaderboard[player_A].breakIns += 1;
+          leaderboard[player_A].breaks += 1;
+          if (breakEvent.event === 0) leaderboard[player_A].scratchBreaks += 1;
+          if (breakEvent.event === 1) leaderboard[player_A].dryBreaks += 1;
+          if (breakEvent.event === 2) leaderboard[player_A].breakIns += 1;
         }
       });
       });
