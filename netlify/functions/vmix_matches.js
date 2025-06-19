@@ -11,11 +11,16 @@ exports.handler = async function(event, context) {
         var _table = 'tbl_tournaments';
         var _field = 'leagueID';
         var _value = "74f79467-9c26-421b-bcef-389bb40fe1ad";
-        
+
+        // Encode the query parameters to ensure proper URL formatting
+        const queryParams = new URLSearchParams({
+            [`${_field}`]: `eq.${_value}`
+        }).toString();
+
         const options = 
         {
         hostname: 'db.thediveclub.org',
-        path: `/rest/v1/${_table}?${_field}.eq.${_value}`,
+        path: `/rest/v1/${_table}?${queryParams}`,
         method: 'GET',
         headers: 
         {
