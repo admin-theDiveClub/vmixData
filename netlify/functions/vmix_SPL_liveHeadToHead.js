@@ -130,97 +130,94 @@ exports.handler = async function(event, context) {
     const leagueID = currentMatch.leagueID;
     const matches = await fetchMatches(leagueID);
 
-    // Build leaderboard for all players
-    const playerStats = {};
+    // Filter matches for head-to-head between these two specific players
+    const headToHeadMatches = matches.filter(match => {
+      const homeId = match.players?.home?.id;
+      const awayId = match.players?.away?.id;
+      return (homeId === homePlayer.id && awayId === awayPlayer.id) ||
+             (homeId === awayPlayer.id && awayId === homePlayer.id);
+    });
 
-    matches.forEach(match => {
-      // Only count matches with valid players
-      ['home', 'away'].forEach(side => {
-        const player = match.players?.[side];
-        if (!player || !player.id) return;
-        if (!playerStats[player.id]) {
-          playerStats[player.id] = {
-            id: player.id,
-            fullName: player.fullName,
-            matchesPlayed: 0,
-            matchesWon: 0,
-            framesPlayed: 0,
-            framesWon: 0,
-            apples: 0,
-            points: 0
-          };
-        }
-        if (match.time?.end != null) {
+    // Build head-to-head statistics for only these two players
+    const playerStats = {
+      [homePlayer.id]: {
+        id: homePlayer.id,
+        fullName: homePlayer.fullName,
+        matchesPlayed: 0,
+        matchesWon: 0,
+        framesPlayed: 0,
+        framesWon: 0,
+        apples: 0,
+        points: 0
+      },
+      [awayPlayer.id]: {
+        id: awayPlayer.id,
+        fullName: awayPlayer.fullName,
+        matchesPlayed: 0,
+        matchesWon: 0,
+        framesPlayed: 0,
+        framesWon: 0,
+        apples: 0,
+        points: 0
+      }
+    };
+
+    headToHeadMatches.forEach(match => {
+      // Only count completed matches for head-to-head stats
+      if (match.time?.end != null) {
+        ['home', 'away'].forEach(side => {
+          const player = match.players?.[side];
+          if (!player || !playerStats[player.id]) return;
+          
           playerStats[player.id].matchesPlayed += 1;
-        }
-        playerStats[player.id].framesPlayed += match.history?.['breaks-event']?.length || 0;
-        playerStats[player.id].framesWon += match.results?.[side]?.frames || 0;
-        playerStats[player.id].apples += match.results?.[side]?.apples || 0;
-      });
+          playerStats[player.id].framesPlayed += match.history?.['breaks-event']?.length || 0;
+          playerStats[player.id].framesWon += match.results?.[side]?.frames || 0;
+          playerStats[player.id].apples += match.results?.[side]?.apples || 0;
+        });
 
-      // Determine match winner
-      let homeFrames = match.results?.home?.frames || 0;
-      let awayFrames = match.results?.away?.frames || 0;
-      if (homeFrames > awayFrames && match.players?.home?.id) {
-        playerStats[match.players.home.id].matchesWon += 1;
-      } else if (awayFrames > homeFrames && match.players?.away?.id) {
-        playerStats[match.players.away.id].matchesWon += 1;
+        // Determine match winner in head-to-head
+        let homeFrames = match.results?.home?.frames || 0;
+        let awayFrames = match.results?.away?.frames || 0;
+        if (homeFrames > awayFrames && match.players?.home?.id) {
+          playerStats[match.players.home.id].matchesWon += 1;
+        } else if (awayFrames > homeFrames && match.players?.away?.id) {
+          playerStats[match.players.away.id].matchesWon += 1;
+        }
       }
     });
 
-    // Calculate win rates and points
+    // Calculate win rates and points for head-to-head
     Object.values(playerStats).forEach(stat => {
       stat.matchesWinRate = stat.matchesPlayed ? `${Math.round((stat.matchesWon / stat.matchesPlayed) * 100)}%` : '0%';
       stat.framesWinRate = stat.framesPlayed ? `${Math.round((stat.framesWon / stat.framesPlayed) * 100)}%` : '0%';
       stat.points = stat.framesWon + stat.apples;
     });
 
-    // Sort leaderboard by points descending
-    const leaderboard = Object.values(playerStats)
-      .sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        if (b.framesWon !== a.framesWon) return b.framesWon - a.framesWon;
-        if (b.matchesWon !== a.matchesWon) return b.matchesWon - a.matchesWon;
-        return b.apples - a.apples;
-      })
-      .map((stat, idx) => ({
-        rank: idx + 1,
-        fullName: stat.fullName,
-        matchesPlayed: stat.matchesPlayed,
-        matchesWon: stat.matchesWon,
-        matchesWinRate: stat.matchesWinRate,
-        framesPlayed: stat.framesPlayed,
-        framesWon: stat.framesWon,
-        framesWinRate: stat.framesWinRate,
-        apples: stat.apples,
-        points: stat.points
-      }));
-
-    // Extract head-to-head data for the two players from the leaderboard
-    const homePlayerStats = leaderboard.find(player => player.fullName === homePlayer.fullName) || {
-      rank: 0,
+    // Create head-to-head data structure with home player first, away player second
+    const homePlayerStats = {
+      rank: playerStats[homePlayer.id].points >= playerStats[awayPlayer.id].points ? 1 : 2,
       fullName: homePlayer.fullName,
-      matchesPlayed: 0,
-      matchesWon: 0,
-      matchesWinRate: '0%',
-      framesPlayed: 0,
-      framesWon: 0,
-      framesWinRate: '0%',
-      apples: 0,
-      points: 0
+      matchesPlayed: playerStats[homePlayer.id].matchesPlayed,
+      matchesWon: playerStats[homePlayer.id].matchesWon,
+      matchesWinRate: playerStats[homePlayer.id].matchesWinRate,
+      framesPlayed: playerStats[homePlayer.id].framesPlayed,
+      framesWon: playerStats[homePlayer.id].framesWon,
+      framesWinRate: playerStats[homePlayer.id].framesWinRate,
+      apples: playerStats[homePlayer.id].apples,
+      points: playerStats[homePlayer.id].points
     };
 
-    const awayPlayerStats = leaderboard.find(player => player.fullName === awayPlayer.fullName) || {
-      rank: 0,
+    const awayPlayerStats = {
+      rank: playerStats[awayPlayer.id].points >= playerStats[homePlayer.id].points ? 1 : 2,
       fullName: awayPlayer.fullName,
-      matchesPlayed: 0,
-      matchesWon: 0,
-      matchesWinRate: '0%',
-      framesPlayed: 0,
-      framesWon: 0,
-      framesWinRate: '0%',
-      apples: 0,
-      points: 0
+      matchesPlayed: playerStats[awayPlayer.id].matchesPlayed,
+      matchesWon: playerStats[awayPlayer.id].matchesWon,
+      matchesWinRate: playerStats[awayPlayer.id].matchesWinRate,
+      framesPlayed: playerStats[awayPlayer.id].framesPlayed,
+      framesWon: playerStats[awayPlayer.id].framesWon,
+      framesWinRate: playerStats[awayPlayer.id].framesWinRate,
+      apples: playerStats[awayPlayer.id].apples,
+      points: playerStats[awayPlayer.id].points
     };
 
     // Final data structure: head-to-head only with home player first, away player second
