@@ -53,32 +53,144 @@ exports.handler = async function(event, context) {
   );
 
 
-
   try 
   {
     const match = await fetchMatch('ea7ae96a-01ec-43b7-b908-8345e9540c55');
-    const data = match
-      .map(item => ({
-      id: item.id,
-      homeName: item.players.home.fullName,
-      awayName: item.players.away.fullName,
-      homeFrames: item.results.home.frames,
-      awayFrames: item.results.away.frames,
-      homeApples: item.results.home.apples,
-      awayApples: item.results.away.apples,
-      homeGoldenBreaks: item.results.home.goldenBreaks,
-      awayGoldenBreaks: item.results.away.goldenBreaks,
-      homePoints: (item.results.home.frames + item.results.home.apples),
-      awayPoints: (item.results.away.frames + item.results.away.apples),
-      status: item.time.start && !item.time.end ? 'active' : 'inactive'
-      }))
-      .filter(item => item.status === 'active');
+    
+    if (!match || match.length === 0) {
+      return {
+        statusCode: 404,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Match not found' })
+      };
+    }
 
-    const response =
-    {
+    const currentMatch = match[0];
+    const homePlayer = currentMatch.players?.home;
+    const awayPlayer = currentMatch.players?.away;
+
+    if (!homePlayer?.id || !awayPlayer?.id) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Invalid player data in match' })
+      };
+    }
+
+    // Get the league ID from the current match to fetch all matches in the same league
+    const leagueID = currentMatch.leagueID;
+    const allMatches = await fetchMatches(leagueID);
+
+    // Filter matches that include both players (head-to-head)
+    const headToHeadMatches = allMatches.filter(match => {
+      const homeId = match.players?.home?.id;
+      const awayId = match.players?.away?.id;
+      return (homeId === homePlayer.id && awayId === awayPlayer.id) ||
+             (homeId === awayPlayer.id && awayId === homePlayer.id);
+    });
+
+    // Calculate head-to-head statistics
+    const playerStats = {
+      [homePlayer.id]: {
+        id: homePlayer.id,
+        fullName: homePlayer.fullName,
+        matchesPlayed: 0,
+        matchesWon: 0,
+        framesPlayed: 0,
+        framesWon: 0,
+        apples: 0,
+        points: 0
+      },
+      [awayPlayer.id]: {
+        id: awayPlayer.id,
+        fullName: awayPlayer.fullName,
+        matchesPlayed: 0,
+        matchesWon: 0,
+        framesPlayed: 0,
+        framesWon: 0,
+        apples: 0,
+        points: 0
+      }
+    };
+
+    headToHeadMatches.forEach(match => {
+      // Only count completed matches
+      if (match.time?.end != null) {
+        ['home', 'away'].forEach(side => {
+          const player = match.players?.[side];
+          if (!player || !playerStats[player.id]) return;
+
+          playerStats[player.id].matchesPlayed += 1;
+          playerStats[player.id].framesPlayed += match.history?.['breaks-event']?.length || 0;
+          playerStats[player.id].framesWon += match.results?.[side]?.frames || 0;
+          playerStats[player.id].apples += match.results?.[side]?.apples || 0;
+        });
+
+        // Determine match winner
+        let homeFrames = match.results?.home?.frames || 0;
+        let awayFrames = match.results?.away?.frames || 0;
+        if (homeFrames > awayFrames && match.players?.home?.id) {
+          playerStats[match.players.home.id].matchesWon += 1;
+        } else if (awayFrames > homeFrames && match.players?.away?.id) {
+          playerStats[match.players.away.id].matchesWon += 1;
+        }
+      }
+    });
+
+    // Calculate win rates and points
+    Object.values(playerStats).forEach(stat => {
+      stat.matchesWinRate = stat.matchesPlayed ? `${Math.round((stat.matchesWon / stat.matchesPlayed) * 100)}%` : '0%';
+      stat.framesWinRate = stat.framesPlayed ? `${Math.round((stat.framesWon / stat.framesPlayed) * 100)}%` : '0%';
+      stat.points = stat.framesWon + stat.apples;
+    });
+
+    // Create head-to-head data structure
+    const headToHeadData = {
+      currentMatch: {
+        id: currentMatch.id,
+        homeName: homePlayer.fullName,
+        awayName: awayPlayer.fullName,
+        homeFrames: currentMatch.results?.home?.frames || 0,
+        awayFrames: currentMatch.results?.away?.frames || 0,
+        homeApples: currentMatch.results?.home?.apples || 0,
+        awayApples: currentMatch.results?.away?.apples || 0,
+        homeGoldenBreaks: currentMatch.results?.home?.goldenBreaks || 0,
+        awayGoldenBreaks: currentMatch.results?.away?.goldenBreaks || 0,
+        homePoints: (currentMatch.results?.home?.frames || 0) + (currentMatch.results?.home?.apples || 0),
+        awayPoints: (currentMatch.results?.away?.frames || 0) + (currentMatch.results?.away?.apples || 0),
+        status: currentMatch.time?.start && !currentMatch.time?.end ? 'active' : 'inactive'
+      },
+      headToHead: {
+        totalMatches: headToHeadMatches.filter(m => m.time?.end != null).length,
+        homePlayer: {
+          fullName: homePlayer.fullName,
+          matchesPlayed: playerStats[homePlayer.id].matchesPlayed,
+          matchesWon: playerStats[homePlayer.id].matchesWon,
+          matchesWinRate: playerStats[homePlayer.id].matchesWinRate,
+          framesPlayed: playerStats[homePlayer.id].framesPlayed,
+          framesWon: playerStats[homePlayer.id].framesWon,
+          framesWinRate: playerStats[homePlayer.id].framesWinRate,
+          apples: playerStats[homePlayer.id].apples,
+          points: playerStats[homePlayer.id].points
+        },
+        awayPlayer: {
+          fullName: awayPlayer.fullName,
+          matchesPlayed: playerStats[awayPlayer.id].matchesPlayed,
+          matchesWon: playerStats[awayPlayer.id].matchesWon,
+          matchesWinRate: playerStats[awayPlayer.id].matchesWinRate,
+          framesPlayed: playerStats[awayPlayer.id].framesPlayed,
+          framesWon: playerStats[awayPlayer.id].framesWon,
+          framesWinRate: playerStats[awayPlayer.id].framesWinRate,
+          apples: playerStats[awayPlayer.id].apples,
+          points: playerStats[awayPlayer.id].points
+        }
+      }
+    };
+
+    const response = {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(headToHeadData)
     };
 
     return response;
