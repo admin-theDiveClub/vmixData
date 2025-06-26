@@ -77,7 +77,10 @@ exports.handler = async function(event, context) {
         points: 0
         };
       }
-      playerStats[player.id].matchesPlayed += 1;
+      if (match.time?.end != null) 
+      {
+        playerStats[player.id].matchesPlayed += 1;
+      }
       playerStats[player.id].framesPlayed += match.history?.['breaks-event']?.length || 0;
       playerStats[player.id].framesWon += match.results?.[side]?.frames || 0;
       playerStats[player.id].apples += match.results?.[side]?.apples || 0;
