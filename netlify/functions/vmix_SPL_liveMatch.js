@@ -57,7 +57,8 @@ exports.handler = async function(event, context) {
   try 
   {
     const match = await fetchMatch('ea7ae96a-01ec-43b7-b908-8345e9540c55');
-    const data = match.map(item => ({
+    const data = match
+      .map(item => ({
       id: item.id,
       homeName: item.players.home.fullName,
       awayName: item.players.away.fullName,
@@ -70,7 +71,8 @@ exports.handler = async function(event, context) {
       homePoints: (item.results.home.frames + item.results.home.apples),
       awayPoints: (item.results.away.frames + item.results.away.apples),
       status: item.time.start && !item.time.end ? 'active' : 'inactive'
-    }));
+      }))
+      .filter(item => item.status === 'active');
 
     const response =
     {
