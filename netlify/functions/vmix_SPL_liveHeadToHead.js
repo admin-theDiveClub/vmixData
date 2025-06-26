@@ -52,12 +52,57 @@ exports.handler = async function(event, context) {
     }
   );
 
+  const fetchMatches = (leagueID) => new Promise
+  (
+    (resolve, reject) => 
+    {
+        var _table = 'tbl_matches_new';
+        var _field = 'leagueID';
+        var _value = leagueID; // Replace 'someVariable' with the actual variable or value
 
+        // Encode the query parameters to ensure proper URL formatting
+        const queryParams = new URLSearchParams({
+            [`${_field}`]: `eq.${_value}`
+        }).toString();
+
+        const options = 
+        {
+        hostname: 'db.thediveclub.org',
+        path: `/rest/v1/${_table}?${queryParams}`,
+        method: 'GET',
+        headers: 
+        {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation'
+        }
+        };
+
+        const req = https.request(options, res => 
+        {
+            let body = '';
+            res.on('data', function(chunk) 
+            {
+            body += chunk;
+            });
+
+            res.on('end', function() 
+            {
+            const data = JSON.parse(body);
+            resolve(data);
+            });
+        });
+
+        req.on('error', err => reject(err));
+        req.end();
+    }
+  );
 
   try 
   {
     const match = await fetchMatch('ea7ae96a-01ec-43b7-b908-8345e9540c55');
-    const data = match
+    const matchData = match
       .map(item => (
       {
           id: item.id,
@@ -72,17 +117,90 @@ exports.handler = async function(event, context) {
           homePoints: (item.results.home.frames + item.results.home.apples),
           awayPoints: (item.results.away.frames + item.results.away.apples),
           status: item.time.start && !item.time.end ? 'active' : 'inactive'
-          }))
-          .filter(item => item.status === 'active');
+      }))
+      .filter(item => item.status === 'active');
 
-        const response =
-        {
-          statusCode: 200,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
+      const matches = await fetchMatches('74f79467-9c26-421b-bcef-389bb40fe1ad');
+    // Build leaderboard
+    const playerStats = {};
+
+    matches.forEach(match => {
+      // Only count matches with valid players
+      ['home', 'away'].forEach(side => {
+      const player = match.players?.[side];
+      if (!player || !player.id) return;
+      if (!playerStats[player.id]) {
+        playerStats[player.id] = {
+        id: player.id,
+        fullName: player.fullName,
+        matchesPlayed: 0,
+        matchesWon: 0,
+        framesPlayed: 0,
+        framesWon: 0,
+        apples: 0,
+        points: 0
         };
+      }
+      if (match.time?.end != null) 
+      {
+        playerStats[player.id].matchesPlayed += 1;
+      }
+      playerStats[player.id].framesPlayed += match.history?.['breaks-event']?.length || 0;
+      playerStats[player.id].framesWon += match.results?.[side]?.frames || 0;
+      playerStats[player.id].apples += match.results?.[side]?.apples || 0;
+      });
 
-        return response;
+      // Determine match winner
+      let homeFrames = match.results?.home?.frames || 0;
+      let awayFrames = match.results?.away?.frames || 0;
+      if (homeFrames > awayFrames && match.players?.home?.id) {
+      playerStats[match.players.home.id].matchesWon += 1;
+      } else if (awayFrames > homeFrames && match.players?.away?.id) {
+      playerStats[match.players.away.id].matchesWon += 1;
+      }
+    });
+
+    // Calculate win rates and points
+    Object.values(playerStats).forEach(stat => {
+      stat.matchesWinRate = stat.matchesPlayed ? `${Math.round((stat.matchesWon / stat.matchesPlayed) * 100)}%` : '0%';
+      stat.framesWinRate = stat.framesPlayed ? `${Math.round((stat.framesWon / stat.framesPlayed) * 100)}%` : '0%';
+      stat.points = stat.framesWon + stat.apples;
+    });
+
+    // Sort leaderboard by points descending
+    // Filter leaderboard for only the two players in the current match
+    const matchPlayerIds = match.map(item => [item.players.home.id, item.players.away.id]).flat();
+    const leaderboard = Object.values(playerStats)
+      .filter(stat => matchPlayerIds.includes(stat.id))
+      .sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.framesWon !== a.framesWon) return b.framesWon - a.framesWon;
+      if (b.matchesWon !== a.matchesWon) return b.matchesWon - a.matchesWon;
+      return b.apples - a.apples;
+      })
+      .map((stat, idx) => ({
+      rank: idx + 1,
+      fullName: stat.fullName,
+      matchesPlayed: stat.matchesPlayed,
+      matchesWon: stat.matchesWon,
+      matchesWinRate: stat.matchesWinRate,
+      framesPlayed: stat.framesPlayed,
+      framesWon: stat.framesWon,
+      framesWinRate: stat.framesWinRate,
+      apples: stat.apples,
+      points: stat.points
+      }));
+
+      data = leaderboard;
+
+      const response =
+      {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      };
+
+      return response;
     
       } catch (err) 
       {
