@@ -69,6 +69,7 @@ exports.handler = async function(event, context) {
       awayGoldenBreaks: item.results.away.goldenBreaks,
       homePoints: (item.results.home.frames + item.results.home.apples),
       awayPoints: (item.results.away.frames + item.results.away.apples),
+      status: item.time.start && !item.time.end ? 'active' : 'inactive'
     }));
 
     const response =
