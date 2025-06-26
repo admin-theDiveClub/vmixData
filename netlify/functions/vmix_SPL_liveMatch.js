@@ -60,20 +60,20 @@ exports.handler = async function(event, context) {
     const data = match
       .map(item => (
       {
-          id: item.id,
-          homeName: item.players.home.fullName,
-          awayName: item.players.away.fullName,
-          homeFrames: item.results.home.frames,
-          awayFrames: item.results.away.frames,
-          homeApples: item.results.home.apples,
-          awayApples: item.results.away.apples,
-          homeGoldenBreaks: item.results.home.goldenBreaks,
-          awayGoldenBreaks: item.results.away.goldenBreaks,
-          homePoints: (item.results.home.frames + item.results.home.apples),
-          awayPoints: (item.results.away.frames + item.results.away.apples),
-          status: item.time.start && !item.time.end ? 'active' : 'inactive'
-          }))
-          .filter(item => item.status === 'active');
+        id: item.id,
+        homeName: item.players.home.fullName.split(' ')[0],
+        awayName: item.players.away.fullName.split(' ')[0],
+        homeFrames: item.results.home.frames,
+        awayFrames: item.results.away.frames,
+        homeApples: item.results.home.apples,
+        awayApples: item.results.away.apples,
+        homeGoldenBreaks: item.results.home.goldenBreaks,
+        awayGoldenBreaks: item.results.away.goldenBreaks,
+        homePoints: (item.results.home.frames + item.results.home.apples),
+        awayPoints: (item.results.away.frames + item.results.away.apples),
+        status: item.time.start && !item.time.end ? 'active' : 'inactive'
+        }))
+        .filter(item => item.status === 'active');
 
         const response =
         {
