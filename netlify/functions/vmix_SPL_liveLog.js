@@ -95,8 +95,8 @@ exports.handler = async function(event, context) {
 
     // Calculate win rates and points
     Object.values(playerStats).forEach(stat => {
-      stat.matchesWinRate = stat.matchesPlayed ? +(stat.matchesWon / stat.matchesPlayed * 100).toFixed(2) : 0;
-      stat.framesWinRate = stat.framesPlayed ? +(stat.framesWon / stat.framesPlayed * 100).toFixed(2) : 0;
+      stat.matchesWinRate = stat.matchesPlayed ? `${((stat.matchesWon / stat.matchesPlayed) * 100).toFixed(2)}%` : '0%';
+      stat.framesWinRate = stat.framesPlayed ? `${((stat.framesWon / stat.framesPlayed) * 100).toFixed(2)}%` : '0%';
       stat.points = stat.framesWon + stat.apples;
     });
 
