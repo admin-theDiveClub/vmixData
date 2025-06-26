@@ -52,111 +52,46 @@ exports.handler = async function(event, context) {
     }
   );
 
-  const fetchMatches = (leagueID) => new Promise
-  (
-    (resolve, reject) => 
-    {
-        var _table = 'tbl_matches_new';
-        var _field = 'leagueID';
-        var _value = leagueID; // Replace 'someVariable' with the actual variable or value
-
-        // Encode the query parameters to ensure proper URL formatting
-        const queryParams = new URLSearchParams({
-            [`${_field}`]: `eq.${_value}`
-        }).toString();
-
-        const options = 
-        {
-        hostname: 'db.thediveclub.org',
-        path: `/rest/v1/${_table}?${queryParams}`,
-        method: 'GET',
-        headers: 
-        {
-            apikey: supabaseKey,
-            Authorization: `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=representation'
-        }
-        };
-
-        const req = https.request(options, res => 
-        {
-            let body = '';
-            res.on('data', function(chunk) 
-            {
-            body += chunk;
-            });
-
-            res.on('end', function() 
-            {
-            const data = JSON.parse(body);
-            resolve(data);
-            });
-        });
-
-        req.on('error', err => reject(err));
-        req.end();
-    }
-  );
-
 
 
   try 
   {
     const match = await fetchMatch('ea7ae96a-01ec-43b7-b908-8345e9540c55');
-    const allMatches = await fetchMatches('74f79467-9c26-421b-bcef-389bb40fe1ad');
     const data = match
-      .map(item => ({
-      id: item.id,
-      homeName: item.players.home.fullName,
-      awayName: item.players.away.fullName,
-      homeFrames: item.results.home.frames,
-      awayFrames: item.results.away.frames,
-      homeApples: item.results.home.apples,
-      awayApples: item.results.away.apples,
-      homeGoldenBreaks: item.results.home.goldenBreaks,
-      awayGoldenBreaks: item.results.away.goldenBreaks,
-      homePoints: (item.results.home.frames + item.results.home.apples),
-      awayPoints: (item.results.away.frames + item.results.away.apples),
-      status: item.time.start && !item.time.end ? 'active' : 'inactive'
-      }))
-      .filter(item => item.status === 'active');
+      .map(item => (
+      {
+          id: item.id,
+          homeName: item.players.home.fullName,
+          awayName: item.players.away.fullName,
+          homeFrames: item.results.home.frames,
+          awayFrames: item.results.away.frames,
+          homeApples: item.results.home.apples,
+          awayApples: item.results.away.apples,
+          homeGoldenBreaks: item.results.home.goldenBreaks,
+          awayGoldenBreaks: item.results.away.goldenBreaks,
+          homePoints: (item.results.home.frames + item.results.home.apples),
+          awayPoints: (item.results.away.frames + item.results.away.apples),
+          status: item.time.start && !item.time.end ? 'active' : 'inactive'
+          }))
+          .filter(item => item.status === 'active');
 
-    // Add all matches to the data
-    data.forEach(item => { 
-      const matchDetails = allMatches.find(m => m.id === item.id);
-      if (matchDetails) {
-        item.homeName = matchDetails.players.home.fullName;
-        item.awayName = matchDetails.players.away.fullName;
-        item.homeFrames = matchDetails.results.home.frames;
-        item.awayFrames = matchDetails.results.away.frames;
-        item.homeApples = matchDetails.results.home.apples;
-        item.awayApples = matchDetails.results.away.apples;
-        item.homeGoldenBreaks = matchDetails.results.home.goldenBreaks;
-        item.awayGoldenBreaks = matchDetails.results.away.goldenBreaks;
-        item.homePoints = (matchDetails.results.home.frames + matchDetails.results.home.apples);
-        item.awayPoints = (matchDetails.results.away.frames + matchDetails.results.away.apples);
-      }
-    });
+        const response =
+        {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        };
 
-
-    const response =
-    {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    };
-
-    return response;
+        return response;
     
-  } catch (err) 
-  {
-    const error = 
-    {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message })
-    };
-    return error;
-  }
+      } catch (err) 
+      {
+        const error = 
+        {
+          statusCode: 500,
+          body: JSON.stringify({ error: err.message })
+        };
+        return error;
+      }
 };
 
