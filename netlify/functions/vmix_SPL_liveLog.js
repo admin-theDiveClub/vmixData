@@ -56,8 +56,67 @@ exports.handler = async function(event, context) {
 
   try 
   {
-    const match = await fetchMatches('74f79467-9c26-421b-bcef-389bb40fe1ad');
-    const data = match;
+    const matches = await fetchMatches('74f79467-9c26-421b-bcef-389bb40fe1ad');
+    // Build leaderboard
+    const playerStats = {};
+
+    matches.forEach(match => {
+      // Only count matches with valid players
+      ['home', 'away'].forEach(side => {
+      const player = match.players?.[side];
+      if (!player || !player.id) return;
+      if (!playerStats[player.id]) {
+        playerStats[player.id] = {
+        id: player.id,
+        fullName: player.fullName,
+        matchesPlayed: 0,
+        matchesWon: 0,
+        framesPlayed: 0,
+        framesWon: 0,
+        apples: 0,
+        points: 0
+        };
+      }
+      playerStats[player.id].matchesPlayed += 1;
+      playerStats[player.id].framesPlayed += match.results?.[side]?.frames || 0;
+      playerStats[player.id].framesWon += match.results?.[side]?.frames || 0;
+      playerStats[player.id].apples += match.results?.[side]?.apples || 0;
+      });
+
+      // Determine match winner
+      let homeFrames = match.results?.home?.frames || 0;
+      let awayFrames = match.results?.away?.frames || 0;
+      if (homeFrames > awayFrames && match.players?.home?.id) {
+      playerStats[match.players.home.id].matchesWon += 1;
+      } else if (awayFrames > homeFrames && match.players?.away?.id) {
+      playerStats[match.players.away.id].matchesWon += 1;
+      }
+    });
+
+    // Calculate win rates and points
+    Object.values(playerStats).forEach(stat => {
+      stat.matchesWinRate = stat.matchesPlayed ? +(stat.matchesWon / stat.matchesPlayed * 100).toFixed(2) : 0;
+      stat.framesWinRate = stat.framesPlayed ? +(stat.framesWon / stat.framesPlayed * 100).toFixed(2) : 0;
+      stat.points = stat.framesWon + stat.apples;
+    });
+
+    // Sort leaderboard by points descending
+    const leaderboard = Object.values(playerStats)
+      .sort((a, b) => b.points - a.points)
+      .map((stat, idx) => ({
+      rank: idx + 1,
+      fullName: stat.fullName,
+      matchesPlayed: stat.matchesPlayed,
+      matchesWon: stat.matchesWon,
+      matchesWinRate: stat.matchesWinRate,
+      framesPlayed: stat.framesPlayed,
+      framesWon: stat.framesWon,
+      framesWinRate: stat.framesWinRate,
+      apples: stat.apples,
+      points: stat.points
+      }));
+
+    const data = leaderboard;
 
     const response =
     {
