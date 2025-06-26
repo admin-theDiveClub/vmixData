@@ -168,10 +168,7 @@ exports.handler = async function(event, context) {
     });
 
     // Sort leaderboard by points descending
-    // Filter leaderboard for only the two players in the current match
-    const matchPlayerIds = match.map(item => [item.players.home.fullName, item.players.away.fullName]).flat();
     const leaderboard = Object.values(playerStats)
-      .filter(stat => matchPlayerIds.includes(stat.fullName))
       .sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       if (b.framesWon !== a.framesWon) return b.framesWon - a.framesWon;
@@ -191,7 +188,13 @@ exports.handler = async function(event, context) {
       points: stat.points
       }));
 
-      data = leaderboard;
+      const playerHeadToHead = leaderboard.filter(
+        player =>
+          player.fullName === matchData[0]?.homeName ||
+          player.fullName === matchData[0]?.awayName
+      );
+
+      const data = playerHeadToHead;
 
       const response =
       {
