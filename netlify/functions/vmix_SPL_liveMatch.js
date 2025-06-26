@@ -58,7 +58,16 @@ exports.handler = async function(event, context) {
   {
     const match = await fetchMatch('ea7ae96a-01ec-43b7-b908-8345e9540c55');
     const data = match.map(item => ({
-        ...item
+      id: item.id,
+      homeName: item.players.home.fullName,
+      awayName: item.players.away.fullName,
+      homeFrames: item.results.home.frames,
+      awayFrames: item.results.away.frames,
+      homeApples: item.results.home.apples,
+      awayApples: item.results.away.apples,
+      homeGoldenBreaks: item.results.home.goldenBreaks,
+      awayGoldenBreaks: item.results.away.goldenBreaks,
+      points: (item.results.home.points + item.results.home.apples),
     }));
 
     const response =
