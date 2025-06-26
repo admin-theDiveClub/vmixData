@@ -169,9 +169,9 @@ exports.handler = async function(event, context) {
 
     // Sort leaderboard by points descending
     // Filter leaderboard for only the two players in the current match
-    const matchPlayerIds = match.map(item => [item.players.home.id, item.players.away.id]).flat();
+    const matchPlayerIds = match.map(item => [item.players.home.fullName, item.players.away.fullName]).flat();
     const leaderboard = Object.values(playerStats)
-      .filter(stat => matchPlayerIds.includes(stat.id))
+      .filter(stat => matchPlayerIds.includes(stat.fullName))
       .sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       if (b.framesWon !== a.framesWon) return b.framesWon - a.framesWon;
