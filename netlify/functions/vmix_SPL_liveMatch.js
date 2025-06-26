@@ -104,6 +104,7 @@ exports.handler = async function(event, context) {
   try 
   {
     const match = await fetchMatch('ea7ae96a-01ec-43b7-b908-8345e9540c55');
+    const allMatches = await fetchMatches('74f79467-9c26-421b-bcef-389bb40fe1ad');
     const data = match
       .map(item => ({
       id: item.id,
@@ -120,6 +121,24 @@ exports.handler = async function(event, context) {
       status: item.time.start && !item.time.end ? 'active' : 'inactive'
       }))
       .filter(item => item.status === 'active');
+
+    // Add all matches to the data
+    data.forEach(item => { 
+      const matchDetails = allMatches.find(m => m.id === item.id);
+      if (matchDetails) {
+        item.homeName = matchDetails.players.home.fullName;
+        item.awayName = matchDetails.players.away.fullName;
+        item.homeFrames = matchDetails.results.home.frames;
+        item.awayFrames = matchDetails.results.away.frames;
+        item.homeApples = matchDetails.results.home.apples;
+        item.awayApples = matchDetails.results.away.apples;
+        item.homeGoldenBreaks = matchDetails.results.home.goldenBreaks;
+        item.awayGoldenBreaks = matchDetails.results.away.goldenBreaks;
+        item.homePoints = (matchDetails.results.home.frames + matchDetails.results.home.apples);
+        item.awayPoints = (matchDetails.results.away.frames + matchDetails.results.away.apples);
+      }
+    });
+
 
     const response =
     {
