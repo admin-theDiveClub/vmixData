@@ -67,8 +67,8 @@ exports.handler = async function(event, context) {
       awayApples: item.results.away.apples,
       homeGoldenBreaks: item.results.home.goldenBreaks,
       awayGoldenBreaks: item.results.away.goldenBreaks,
-      homePoints: (homeFrames + homeApples),
-      awayPoints: (awayFrames + awayApples),
+      homePoints: (item.results.home.frames + item.results.home.apples),
+      awayPoints: (item.results.away.frames + item.results.away.apples),
     }));
 
     const response =
