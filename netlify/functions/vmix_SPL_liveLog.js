@@ -102,7 +102,12 @@ exports.handler = async function(event, context) {
 
     // Sort leaderboard by points descending
     const leaderboard = Object.values(playerStats)
-      .sort((a, b) => b.points - a.points)
+      .sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.framesWon !== a.framesWon) return b.framesWon - a.framesWon;
+      if (b.matchesWon !== a.matchesWon) return b.matchesWon - a.matchesWon;
+      return b.apples - a.apples;
+      })
       .map((stat, idx) => ({
       rank: idx + 1,
       fullName: stat.fullName,
