@@ -11,7 +11,7 @@ exports.handler = async function(event, context) {
     {
         var _table = 'tbl_matches_new';
         var _field = 'tournamentID';
-        var _value = matchID; // Replace 'someVariable' with the actual variable or value
+        var _value = tournamentID; // Replace 'someVariable' with the actual variable or value
 
         // Encode the query parameters to ensure proper URL formatting
         const queryParams = new URLSearchParams({
