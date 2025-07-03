@@ -79,28 +79,32 @@ exports.handler = async function(event, context) {
     const A_b_scr = match.results.a.breaks.scr;
     const A_points = A_fw + A_bf;
 
-    var liveMatchStripped = {
-      player_Home,
-      player_Home_firstName,
-      H_fw,
-      H_bf,
-      H_points,
-      H_gb,
-      H_rf,
-      H_b_in,
-      H_b_dry,
-      H_b_scr,
-      player_Away,
-      player_Away_firstName,
-      A_fw,
-      A_bf,
-      A_points,
-      A_gb,
-      A_rf,
-      A_b_in,
-      A_b_dry,
-      A_b_scr
-    };
+    var liveMatchStripped = [
+      {
+        name: player_Home,
+        firstName: player_Home_firstName,
+        fw: H_fw,
+        bf: H_bf,
+        points: H_points,
+        gb: H_gb,
+        rf: H_rf,
+        b_in: H_b_in,
+        b_dry: H_b_dry,
+        b_scr: H_b_scr
+      },
+      {
+        name: player_Away,
+        firstName: player_Away_firstName,
+        fw: A_fw,
+        bf: A_bf,
+        points: A_points,
+        gb: A_gb,
+        rf: A_rf,
+        b_in: A_b_in,
+        b_dry: A_b_dry,
+        b_scr: A_b_scr
+      }
+    ];
 
     const data = liveMatchStripped;
 
