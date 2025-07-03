@@ -61,10 +61,15 @@ exports.handler = async function(event, context)
     
     var allMatches = {};
     
-    matches.forEach(match => {
+    // Add headers for player stats to each round
+    const roundKey = `Round 0`;
+    allMatches[roundKey] = [
+      "Player | FW | BF | Points | Player | FW | BF | Points"
+    ];
+
+    matches.forEach((match, i) => {
       // Extract date from match.time.start (YYYY-MM-DD)
       const date = match.time && match.time.start ? match.time.start.split('T')[0] : 'Unknown Date';
-      const roundKey = `Round 1: ${date}`;
 
       // Extract player info and results
       const h = match.players && match.players.h ? match.players.h : {};
@@ -72,37 +77,15 @@ exports.handler = async function(event, context)
       const rh = match.results && match.results.h ? match.results.h : {};
       const ra = match.results && match.results.a ? match.results.a : {};
 
-      // Calculate points (fw + bf)
-      const hPoints = (rh.fw || 0) + (rh.bf || 0);
-      const aPoints = (ra.fw || 0) + (ra.bf || 0);
+      // Format player stats
+      const hStats = `FW:${rh.fw || 0} BF:${rh.bf || 0} Points:${(rh.fw || 0) + (rh.bf || 0)}`;
+      const aStats = `FW:${ra.fw || 0} BF:${ra.bf || 0} Points:${(ra.fw || 0) + (ra.bf || 0)}`;
 
-      // Build table as an array of rows for pretty print
-      const table = [
-      ['Player', 'FW', 'BF', 'Points'],
-      ['------------------', '----', '----', '--------'],
-      [h.fullName || '', rh.fw || 0, rh.bf || 0, hPoints],
-      [a.fullName || '', ra.fw || 0, ra.bf || 0, aPoints]
-      ];
+      // Format match line
+      const matchLine = `${h.fullName || ''} | ${hStats} | ${a.fullName || ''} ${aStats}`;
 
-      // Add to allMatches (append if multiple matches per date)
-      if (!allMatches[roundKey]) {
-      allMatches[roundKey] = [];
-      }
-      allMatches[roundKey].push(table);
-    });
-
-    // Optionally, pretty print tables as aligned strings
-    Object.keys(allMatches).forEach(roundKey => {
-      allMatches[roundKey] = allMatches[roundKey].map(table => {
-      // Calculate column widths
-      const colWidths = table[0].map((_, colIdx) =>
-        Math.max(...table.map(row => String(row[colIdx]).length))
-      );
-      // Format each row
-      return table.map(row =>
-        row.map((cell, i) => String(cell).padEnd(colWidths[i])).join(' | ')
-      ).join('\n');
-      }).join('\n\n');
+      // Add to allMatches (append if multiple matches)
+      allMatches[roundKey].push(`match_${i}: ${matchLine}`);
     });
 
     const data = allMatches;
