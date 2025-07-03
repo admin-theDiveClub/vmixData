@@ -1,17 +1,18 @@
 const https = require('https')
 
-exports.handler = async function(event, context) {
+exports.handler = async function(event, context) 
+{
   const supabaseUrl = 'https://db.thediveclub.org';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tdmx3dXRudW91eW51a290ZGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk2OTgyMzEsImV4cCI6MjA1NTI3NDIzMX0.qyEDq8w67G2BMfyHO7Iyvd3nFUSd0sulJhGl0eGkbfA';
 
 
-  const fetchMatch = (tournamentID) => new Promise
+  const fetchMatches = (field, value) => new Promise
   (
     (resolve, reject) => 
     {
-        var _table = 'tbl_matches_new';
-        var _field = 'tournamentID';
-        var _value = tournamentID; // Replace 'someVariable' with the actual variable or value
+        var _table = 'tbl_matches';
+        var _field = field;
+        var _value = value;
 
         // Encode the query parameters to ensure proper URL formatting
         const queryParams = new URLSearchParams({
@@ -52,166 +53,141 @@ exports.handler = async function(event, context) {
     }
   );
 
-  const fetchMatches = (leagueID) => new Promise
-  (
-    (resolve, reject) => 
-    {
-        var _table = 'tbl_matches_new';
-        var _field = 'leagueID';
-        var _value = leagueID; // Replace 'someVariable' with the actual variable or value
 
-        // Encode the query parameters to ensure proper URL formatting
-        const queryParams = new URLSearchParams({
-            [`${_field}`]: `eq.${_value}`
-        }).toString();
-
-        const options = 
-        {
-        hostname: 'db.thediveclub.org',
-        path: `/rest/v1/${_table}?${queryParams}`,
-        method: 'GET',
-        headers: 
-        {
-            apikey: supabaseKey,
-            Authorization: `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=representation'
-        }
-        };
-
-        const req = https.request(options, res => 
-        {
-            let body = '';
-            res.on('data', function(chunk) 
-            {
-            body += chunk;
-            });
-
-            res.on('end', function() 
-            {
-            const data = JSON.parse(body);
-            resolve(data);
-            });
-        });
-
-        req.on('error', err => reject(err));
-        req.end();
-    }
-  );
 
   try 
   {
-    const match = await fetchMatch('ea7ae96a-01ec-43b7-b908-8345e9540c55');
-    const matchData = match
-      .map(item => (
-      {
-          id: item.id,
-          homeName: item.players.home.fullName,
-          awayName: item.players.away.fullName,
-          homeFrames: item.results.home.frames,
-          awayFrames: item.results.away.frames,
-          homeApples: item.results.home.apples,
-          awayApples: item.results.away.apples,
-          homeGoldenBreaks: item.results.home.goldenBreaks,
-          awayGoldenBreaks: item.results.away.goldenBreaks,
-          homePoints: (item.results.home.frames + item.results.home.apples),
-          awayPoints: (item.results.away.frames + item.results.away.apples),
-          status: item.time.start && !item.time.end ? 'active' : 'inactive'
-      }))
-      .filter(item => item.status === 'active');
+    const liveMatches = await fetchMatches("info->>status", "Live");
+    const players = [liveMatches[0].players.h.fullName, liveMatches[0].players.a.fullName];
 
-      const matches = await fetchMatches('74f79467-9c26-421b-bcef-389bb40fe1ad');
-    // Build leaderboard
+    const leagueMatches = await fetchMatches("competitions->>leagueID", "74f79467-9c26-421b-bcef-389bb40fe1ad");
+
+    var leaderboard = [];
     const playerStats = {};
 
-    matches.forEach(match => {
-      // Only count matches with valid players
-      ['home', 'away'].forEach(side => {
-      const player = match.players?.[side];
-      if (!player || !player.id) return;
-      if (!playerStats[player.id]) {
-        playerStats[player.id] = {
-        id: player.id,
-        fullName: player.fullName,
-        matchesPlayed: 0,
-        matchesWon: 0,
-        framesPlayed: 0,
-        framesWon: 0,
-        apples: 0,
-        points: 0
-        };
-      }
-      if (match.time?.end != null) 
-      {
-        playerStats[player.id].matchesPlayed += 1;
-      }
-      playerStats[player.id].framesPlayed += match.history?.['breaks-event']?.length || 0;
-      playerStats[player.id].framesWon += match.results?.[side]?.frames || 0;
-      playerStats[player.id].apples += match.results?.[side]?.apples || 0;
-      });
+    for (const match of leagueMatches) {
+      if (!match.info || !["Live", "Complete"].includes(match.info.status)) continue;
+
+      const players = match.players;
+      const results = match.results;
+      const history = match.history;
+
+      // Get player IDs and names
+      const playerA = players.a;
+      const playerH = players.h;
+
+      // Calculate points for each player
+      const pointsA = (results.a.fw || 0) + (results.a.bf || 0);
+      const pointsH = (results.h.fw || 0) + (results.h.bf || 0);
 
       // Determine match winner
-      let homeFrames = match.results?.home?.frames || 0;
-      let awayFrames = match.results?.away?.frames || 0;
-      if (homeFrames > awayFrames && match.players?.home?.id) {
-      playerStats[match.players.home.id].matchesWon += 1;
-      } else if (awayFrames > homeFrames && match.players?.away?.id) {
-      playerStats[match.players.away.id].matchesWon += 1;
+      let winner = null;
+      if (pointsA > pointsH) winner = playerA.id;
+      else if (pointsH > pointsA) winner = playerH.id;
+
+      // Frames played
+      const framesPlayed = Object.keys(history || {}).length;
+
+      // Frames won
+      let framesWonA = 0;
+      let framesWonH = 0;
+      for (const key in history) {
+        if (history[key]["winner-player"] === "a") framesWonA++;
+        if (history[key]["winner-player"] === "h") framesWonH++;
       }
+
+      // Update stats for player A
+      if (!playerStats[playerA.id]) {
+        playerStats[playerA.id] = {
+          id: playerA.id,
+          fullName: playerA.fullName,
+          matchesPlayed: 0,
+          matchesWon: 0,
+          framesPlayed: 0,
+          framesWon: 0,
+          bf: 0,
+          points: 0
+        };
+      }
+      playerStats[playerA.id].matchesPlayed += 1;
+      if (winner === playerA.id) playerStats[playerA.id].matchesWon += 1;
+      playerStats[playerA.id].framesPlayed += framesPlayed;
+      playerStats[playerA.id].framesWon += framesWonA;
+      playerStats[playerA.id].bf += results.a.bf || 0;
+      playerStats[playerA.id].points += pointsA;
+
+      // Update stats for player H
+      if (!playerStats[playerH.id]) {
+        playerStats[playerH.id] = {
+          id: playerH.id,
+          fullName: playerH.fullName,
+          matchesPlayed: 0,
+          matchesWon: 0,
+          framesPlayed: 0,
+          framesWon: 0,
+          bf: 0,
+          points: 0
+        };
+      }
+      playerStats[playerH.id].matchesPlayed += 1;
+      if (winner === playerH.id) playerStats[playerH.id].matchesWon += 1;
+      playerStats[playerH.id].framesPlayed += framesPlayed;
+      playerStats[playerH.id].framesWon += framesWonH;
+      playerStats[playerH.id].bf += results.h.bf || 0;
+      playerStats[playerH.id].points += pointsH;
+    }
+
+    // Prepare cleaned array
+    leaderboard = Object.values(playerStats).map(player => {
+      const matchesWinRate = player.matchesPlayed > 0 ? (player.matchesWon / player.matchesPlayed) : 0;
+      const framesWinRate = player.framesPlayed > 0 ? (player.framesWon / player.framesPlayed) : 0;
+      return {
+        fullName: player.fullName,
+        matchesPlayed: player.matchesPlayed,
+        matchesWon: player.matchesWon,
+        matchesWinRate: (matchesWinRate * 100).toFixed(1) + '%',
+        framesPlayed: player.framesPlayed,
+        framesWon: player.framesWon,
+        framesWinRate: (framesWinRate * 100).toFixed(1) + '%',
+        bf: player.bf,
+        points: player.points
+      };
     });
 
-    // Calculate win rates and points
-    Object.values(playerStats).forEach(stat => {
-      stat.matchesWinRate = stat.matchesPlayed ? `${Math.round((stat.matchesWon / stat.matchesPlayed) * 100)}%` : '0%';
-      stat.framesWinRate = stat.framesPlayed ? `${Math.round((stat.framesWon / stat.framesPlayed) * 100)}%` : '0%';
-      stat.points = stat.framesWon + stat.apples;
-    });
-
-    // Sort leaderboard by points descending
-    const leaderboard = Object.values(playerStats)
-      .sort((a, b) => {
+    // Sort by points, framesWon, bf, matchesWon
+    leaderboard.sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       if (b.framesWon !== a.framesWon) return b.framesWon - a.framesWon;
-      if (b.matchesWon !== a.matchesWon) return b.matchesWon - a.matchesWon;
-      return b.apples - a.apples;
-      })
-      .map((stat, idx) => ({
-      rank: idx + 1,
-      fullName: stat.fullName,
-      matchesPlayed: stat.matchesPlayed,
-      matchesWon: stat.matchesWon,
-      matchesWinRate: stat.matchesWinRate,
-      framesPlayed: stat.framesPlayed,
-      framesWon: stat.framesWon,
-      framesWinRate: stat.framesWinRate,
-      apples: stat.apples,
-      points: stat.points
-      }));
+      if (b.bf !== a.bf) return b.bf - a.bf;
+      return b.matchesWon - a.matchesWon;
+    });
 
-      const playerHeadToHead = leaderboard.filter(
-        player =>
-          player.fullName === matchData[0]?.homeName ||
-          player.fullName === matchData[0]?.awayName
-      );
+    // Add Rank
+    leaderboard.forEach((player, idx) => {
+      player.rank = idx + 1;
+    });
 
-      const data = playerHeadToHead;
+    // Filter out leaderboard entries where player is in players array
+    const filteredLeaderboard = leaderboard.filter(player => players.includes(player.fullName));
+    data = filteredLeaderboard;
 
-      const response =
-      {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      };
+    const response =
+    {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    };
 
-      return response;
-    
-      } catch (err) 
-      {
-        const error = 
-        {
-          statusCode: 500,
-          body: JSON.stringify({ error: err.message })
-        };
-        return error;
-      }
+    return response;
+
+  } catch (err) 
+  {
+    const error = 
+    {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message })
+    };
+    return error;
+  }
 };
+
