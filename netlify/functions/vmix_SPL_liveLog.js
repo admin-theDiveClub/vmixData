@@ -59,7 +59,20 @@ exports.handler = async function(event, context)
   {
     const matches = await fetchMatches('74f79467-9c26-421b-bcef-389bb40fe1ad');
     // Build leaderboard
-    const data = matches;
+    var matchesCleaned = [];
+
+    matches.forEach(match => {
+      const status = match.info && match.info.status ? match.info.status : null;
+      if (!matchesCleaned[status]) matchesCleaned[status] = [];
+      matchesCleaned[status].push({
+        home: match.players.h.fullName,
+        away: match.players.a.fullName,
+        homeScore: match.results.h.fw ?? match.results.h.bw ?? 0,
+        awayScore: match.results.a.fw ?? match.results.a.bw ?? 0
+      });
+    });
+
+    const data = matchesCleaned;
 
     const response =
     {
@@ -86,3 +99,4 @@ exports.handler = async function(event, context)
 tournament.status = "Live" / "Complete" / "New"
 
 */
+
