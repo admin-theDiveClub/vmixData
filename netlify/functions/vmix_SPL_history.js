@@ -64,12 +64,20 @@ exports.handler = async function(event, context)
     // Add headers for player stats to each round
     const roundKey = `Round 0`;
     allMatches[roundKey] = [
-      "Player | FW | BF | Points | Player | FW | BF | Points"
+      "         Player          | FW  | BF| Points | Player | FW | BF | Points"
     ];
 
     matches.forEach((match, i) => {
       // Extract date from match.time.start (YYYY-MM-DD)
       const date = match.time && match.time.start ? match.time.start.split('T')[0] : 'Unknown Date';
+      const roundKey = `Round ${date}`;
+
+      // Ensure header exists for each round
+      if (!allMatches[roundKey]) {
+      allMatches[roundKey] = [
+        "Player | FW | BF | Points | Player | FW | BF | Points"
+      ];
+      }
 
       // Extract player info and results
       const h = match.players && match.players.h ? match.players.h : {};
