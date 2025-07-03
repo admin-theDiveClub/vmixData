@@ -59,11 +59,16 @@ exports.handler = async function(event, context)
   {
     const matches = await fetchMatches('74f79467-9c26-421b-bcef-389bb40fe1ad');
     // Build leaderboard
-    var matchesCleaned = [];
+    var matchesCleaned = 
+    {
+      "New": [],
+      "Live": [],
+      "Complete": [],
+    };
 
-    matches.forEach(match => {
-      const status = match.info && match.info.status ? match.info.status : null;
-      if (!matchesCleaned[status]) matchesCleaned[status] = [];
+    matches.forEach(match => 
+    {
+      const status = match.info.status;
       matchesCleaned[status].push({
         home: match.players.h.fullName,
         away: match.players.a.fullName,
