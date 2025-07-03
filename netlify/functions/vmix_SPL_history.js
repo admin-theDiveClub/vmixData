@@ -76,19 +76,33 @@ exports.handler = async function(event, context)
       const hPoints = (rh.fw || 0) + (rh.bf || 0);
       const aPoints = (ra.fw || 0) + (ra.bf || 0);
 
-      // Build table as a string
-      const table = 
-    `| Player           | FW | BF | Points |
-    |------------------|----|----|--------|
-    | ${h.fullName || ''} | ${rh.fw || 0}  | ${rh.bf || 0}  | ${hPoints}     |
-    | ${a.fullName || ''} | ${ra.fw || 0}  | ${ra.bf || 0}  | ${aPoints}     |`;
+      // Build table as an array of rows for pretty print
+      const table = [
+      ['Player', 'FW', 'BF', 'Points'],
+      ['------------------', '----', '----', '--------'],
+      [h.fullName || '', rh.fw || 0, rh.bf || 0, hPoints],
+      [a.fullName || '', ra.fw || 0, ra.bf || 0, aPoints]
+      ];
 
       // Add to allMatches (append if multiple matches per date)
       if (!allMatches[roundKey]) {
-        allMatches[roundKey] = table;
-      } else {
-        allMatches[roundKey] += '\n\n' + table;
+      allMatches[roundKey] = [];
       }
+      allMatches[roundKey].push(table);
+    });
+
+    // Optionally, pretty print tables as aligned strings
+    Object.keys(allMatches).forEach(roundKey => {
+      allMatches[roundKey] = allMatches[roundKey].map(table => {
+      // Calculate column widths
+      const colWidths = table[0].map((_, colIdx) =>
+        Math.max(...table.map(row => String(row[colIdx]).length))
+      );
+      // Format each row
+      return table.map(row =>
+        row.map((cell, i) => String(cell).padEnd(colWidths[i])).join(' | ')
+      ).join('\n');
+      }).join('\n\n');
     });
 
     const data = allMatches;
