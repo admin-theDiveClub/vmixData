@@ -143,10 +143,10 @@ exports.handler = async function(event, context)
         fullName: player.fullName,
         matchesPlayed: player.matchesPlayed,
         matchesWon: player.matchesWon,
-        matchesWinRate: Number(matchesWinRate.toFixed(3)),
+        matchesWinRate: (matchesWinRate * 100).toFixed(1) + '%',
         framesPlayed: player.framesPlayed,
         framesWon: player.framesWon,
-        framesWinRate: Number(framesWinRate.toFixed(3)),
+        framesWinRate: (framesWinRate * 100).toFixed(1) + '%',
         bf: player.bf,
         points: player.points
       };
@@ -162,7 +162,7 @@ exports.handler = async function(event, context)
 
     // Add Rank
     matchesCleaned.forEach((player, idx) => {
-      player.Rank = idx + 1;
+      player.rank = idx + 1;
     });
 
     const data = matchesCleaned;
