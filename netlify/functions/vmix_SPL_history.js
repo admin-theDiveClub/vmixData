@@ -67,11 +67,18 @@ exports.handler = async function(event, context)
       // Get player names
       const playerA = match.players && match.players.a ? match.players.a.fullName : 'Player A';
       const playerH = match.players && match.players.h ? match.players.h.fullName : 'Player H';
-      // Create match description
-      const matchText = `${playerA} vs ${playerH}`;
+      // Get player results as stringified summary
+      const resultsA = match.results && match.results.a
+      ? `(${Object.entries(match.results.a).filter(([k]) => k !== 'breaks').map(([k, v]) => `${k}:${v}`).join(', ')})`
+      : '';
+      const resultsH = match.results && match.results.h
+      ? `(${Object.entries(match.results.h).filter(([k]) => k !== 'breaks').map(([k, v]) => `${k}:${v}`).join(', ')})`
+      : '';
+      // Create match description with results
+      const matchText = `${playerA} ${resultsA} vs ${playerH} ${resultsH}`;
       // Group by date
       if (!allMatches[date]) {
-        allMatches[date] = [];
+      allMatches[date] = [];
       }
       allMatches[date].push(matchText);
     });
