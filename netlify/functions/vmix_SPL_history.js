@@ -61,6 +61,28 @@ exports.handler = async function(event, context)
     
     var allMatches = {};
 
+    // Helper to pad strings for neat columns
+    const pad = (str, len) => String(str).padEnd(len);
+
+    // Find max name length for alignment
+    let maxNameLen = 0;
+    matches.forEach(match => {
+      const playerA = match.players && match.players.a ? match.players.a.fullName : 'Player A';
+      const playerH = match.players && match.players.h ? match.players.h.fullName : 'Player H';
+      maxNameLen = Math.max(maxNameLen, playerA.length, playerH.length);
+    });
+
+    // Format stats with padding
+    const statString = (name, res) => {
+      const fw = res.fw ?? 0;
+      const bf = res.bf ?? 0;
+      const gb = res.gb ?? 0;
+      const b_in = res.breaks && res.breaks.in !== undefined ? res.breaks.in : 0;
+      const b_dry = res.breaks && res.breaks.dry !== undefined ? res.breaks.dry : 0;
+      const b_scr = res.breaks && res.breaks.scr !== undefined ? res.breaks.scr : 0;
+      return `${pad(name, maxNameLen)} | FW: ${pad(fw,2)} | BF: ${pad(bf,2)} | GB: ${pad(gb,2)} | B_IN: ${pad(b_in,2)} | B_DRY: ${pad(b_dry,2)} | B_SCR: ${pad(b_scr,2)}`;
+    };
+
     matches.forEach(match => {
       // Extract date part (YYYY-MM-DD) from match.time.start
       const date = match.time && match.time.start ? match.time.start.split('T')[0] : 'Unknown';
@@ -72,18 +94,7 @@ exports.handler = async function(event, context)
       const resultsA = match.results && match.results.a ? match.results.a : {};
       const resultsH = match.results && match.results.h ? match.results.h : {};
 
-      // Extract stats for each player
-      const statString = (name, res) => {
-      const fw = res.fw ?? 0;
-      const bf = res.bf ?? 0;
-      const gb = res.gb ?? 0;
-      const b_in = res.breaks && res.breaks.in !== undefined ? res.breaks.in : 0;
-      const b_dry = res.breaks && res.breaks.dry !== undefined ? res.breaks.dry : 0;
-      const b_scr = res.breaks && res.breaks.scr !== undefined ? res.breaks.scr : 0;
-      return `${name} | FW: ${fw} | BF: ${bf} | GB: ${gb} | B_IN: ${b_in} | B_DRY: ${b_dry} | B_SCR: ${b_scr}`;
-      };
-
-      // Create match description
+      // Create match description with neat columns
       const matchText = `${statString(playerA, resultsA)} vs ${statString(playerH, resultsH)}`;
 
       // Group by date
