@@ -66,6 +66,7 @@ exports.handler = async function(event, context) {
     const H_b_in = match.results.h.breaks.in;
     const H_b_dry = match.results.h.breaks.dry;
     const H_b_scr = match.results.h.breaks.scr;
+    const H_points = H_fw + H_bf;
 
     const player_Away = match.players.a.fullName;
     const player_Away_firstName = match.players.a.fullName.split(' ')[0];
@@ -76,12 +77,14 @@ exports.handler = async function(event, context) {
     const A_b_in = match.results.a.breaks.in;
     const A_b_dry = match.results.a.breaks.dry;
     const A_b_scr = match.results.a.breaks.scr;
+    const A_points = A_fw + A_bf;
 
     var liveMatchStripped = {
       player_Home,
       player_Home_firstName,
       H_fw,
       H_bf,
+      H_points,
       H_gb,
       H_rf,
       H_b_in,
@@ -91,6 +94,7 @@ exports.handler = async function(event, context) {
       player_Away_firstName,
       A_fw,
       A_bf,
+      A_points,
       A_gb,
       A_rf,
       A_b_in,
