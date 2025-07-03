@@ -67,8 +67,8 @@ exports.handler = async function(event, context)
       matchesCleaned[status].push({
         home: match.players.h.fullName,
         away: match.players.a.fullName,
-        homeScore: match.results.h.fw ?? match.results.h.bw ?? 0,
-        awayScore: match.results.a.fw ?? match.results.a.bw ?? 0
+        homeScore: `${match.results.h.fw ?? 0} | ${match.results.h.bw ?? 0} | ${(match.results.h.fw ?? 0) + (match.results.h.bw ?? 0)}`,
+        awayScore: `${match.results.a.fw ?? 0} | ${match.results.a.bw ?? 0} | ${(match.results.a.fw ?? 0) + (match.results.a.bw ?? 0)}`
       });
     });
 
