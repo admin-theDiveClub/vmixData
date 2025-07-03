@@ -90,25 +90,27 @@ exports.handler = async function(event, context)
       let framesWonA = 0;
       let framesWonH = 0;
       for (const key in history) {
-        if (history[key]["winner-player"] === "a") framesWonA++;
-        if (history[key]["winner-player"] === "h") framesWonH++;
+      if (history[key]["winner-player"] === "a") framesWonA++;
+      if (history[key]["winner-player"] === "h") framesWonH++;
       }
 
       // Update stats for player A
       if (!playerStats[playerA.id]) {
-        playerStats[playerA.id] = {
-          id: playerA.id,
-          fullName: playerA.fullName,
-          matchesPlayed: 0,
-          matchesWon: 0,
-          framesPlayed: 0,
-          framesWon: 0,
-          bf: 0,
-          points: 0
-        };
+      playerStats[playerA.id] = {
+        id: playerA.id,
+        fullName: playerA.fullName,
+        matchesPlayed: 0,
+        matchesWon: 0,
+        framesPlayed: 0,
+        framesWon: 0,
+        bf: 0,
+        points: 0
+      };
       }
+      if (match.info.status === "Complete") {
       playerStats[playerA.id].matchesPlayed += 1;
       if (winner === playerA.id) playerStats[playerA.id].matchesWon += 1;
+      }
       playerStats[playerA.id].framesPlayed += framesPlayed;
       playerStats[playerA.id].framesWon += framesWonA;
       playerStats[playerA.id].bf += results.a.bf || 0;
@@ -116,19 +118,21 @@ exports.handler = async function(event, context)
 
       // Update stats for player H
       if (!playerStats[playerH.id]) {
-        playerStats[playerH.id] = {
-          id: playerH.id,
-          fullName: playerH.fullName,
-          matchesPlayed: 0,
-          matchesWon: 0,
-          framesPlayed: 0,
-          framesWon: 0,
-          bf: 0,
-          points: 0
-        };
+      playerStats[playerH.id] = {
+        id: playerH.id,
+        fullName: playerH.fullName,
+        matchesPlayed: 0,
+        matchesWon: 0,
+        framesPlayed: 0,
+        framesWon: 0,
+        bf: 0,
+        points: 0
+      };
       }
+      if (match.info.status === "Complete") {
       playerStats[playerH.id].matchesPlayed += 1;
       if (winner === playerH.id) playerStats[playerH.id].matchesWon += 1;
+      }
       playerStats[playerH.id].framesPlayed += framesPlayed;
       playerStats[playerH.id].framesWon += framesWonH;
       playerStats[playerH.id].bf += results.h.bf || 0;
@@ -140,15 +144,15 @@ exports.handler = async function(event, context)
       const matchesWinRate = player.matchesPlayed > 0 ? (player.matchesWon / player.matchesPlayed) : 0;
       const framesWinRate = player.framesPlayed > 0 ? (player.framesWon / player.framesPlayed) : 0;
       return {
-        fullName: player.fullName,
-        matchesPlayed: player.matchesPlayed,
-        matchesWon: player.matchesWon,
-        matchesWinRate: (matchesWinRate * 100).toFixed(1) + '%',
-        framesPlayed: player.framesPlayed,
-        framesWon: player.framesWon,
-        framesWinRate: (framesWinRate * 100).toFixed(1) + '%',
-        bf: player.bf,
-        points: player.points
+      fullName: player.fullName,
+      matchesPlayed: player.matchesPlayed,
+      matchesWon: player.matchesWon,
+      matchesWinRate: (matchesWinRate * 100).toFixed(1) + '%',
+      framesPlayed: player.framesPlayed,
+      framesWon: player.framesWon,
+      framesWinRate: (framesWinRate * 100).toFixed(1) + '%',
+      bf: player.bf,
+      points: player.points
       };
     });
 
