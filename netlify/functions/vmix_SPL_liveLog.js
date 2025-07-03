@@ -61,15 +61,18 @@ exports.handler = async function(event, context)
     // Build leaderboard
     var matchesCleaned = 
     {
-      "New": [],
-      "Live": [],
-      "Complete": [],
+      "New": {},
+      "Live": {},
+      "Complete": {},
     };
 
     matches.forEach(match => 
     {
       const status = match.info.status;
-      matchesCleaned[status].push({
+      const date = match.time.start.split('T')[0];
+      if (!matchesCleaned[status][date]) matchesCleaned[status][date] = [];
+      matchesCleaned[status][date].push(
+      {
         home: match.players.h.fullName,
         away: match.players.a.fullName,
         homeScore: `${match.results.h.fw ?? 0} | ${match.results.h.bf ?? 0} | ${(match.results.h.fw ?? 0) + (match.results.h.bf ?? 0)}`,
