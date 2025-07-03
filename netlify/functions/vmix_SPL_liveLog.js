@@ -59,7 +59,7 @@ exports.handler = async function(event, context)
   {
     const matches = await fetchMatches('74f79467-9c26-421b-bcef-389bb40fe1ad');
     
-    var matchesCleaned = [];
+    var leaderboard = [];
 
     const playerStats = {};
 
@@ -136,7 +136,7 @@ exports.handler = async function(event, context)
     }
 
     // Prepare cleaned array
-    matchesCleaned = Object.values(playerStats).map(player => {
+    leaderboard = Object.values(playerStats).map(player => {
       const matchesWinRate = player.matchesPlayed > 0 ? (player.matchesWon / player.matchesPlayed) : 0;
       const framesWinRate = player.framesPlayed > 0 ? (player.framesWon / player.framesPlayed) : 0;
       return {
@@ -153,7 +153,7 @@ exports.handler = async function(event, context)
     });
 
     // Sort by points, framesWon, bf, matchesWon
-    matchesCleaned.sort((a, b) => {
+    leaderboard.sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       if (b.framesWon !== a.framesWon) return b.framesWon - a.framesWon;
       if (b.bf !== a.bf) return b.bf - a.bf;
@@ -161,11 +161,11 @@ exports.handler = async function(event, context)
     });
 
     // Add Rank
-    matchesCleaned.forEach((player, idx) => {
+    leaderboard.forEach((player, idx) => {
       player.rank = idx + 1;
     });
 
-    const data = matchesCleaned;
+    const data = leaderboard;
 
     const response =
     {
