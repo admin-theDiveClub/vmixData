@@ -80,7 +80,7 @@ exports.handler = async function(event, context)
       const b_in = res.breaks && res.breaks.in !== undefined ? res.breaks.in : 0;
       const b_dry = res.breaks && res.breaks.dry !== undefined ? res.breaks.dry : 0;
       const b_scr = res.breaks && res.breaks.scr !== undefined ? res.breaks.scr : 0;
-      return `${name} | ${fw} | ${bf} | ${gb} | ${b_in} | ${b_dry} | ${b_scr}`;
+      return `${name} | FW: ${fw} | BF: ${bf} | GB: ${gb} | B_IN: ${b_in} | B_DRY: ${b_dry} | B_SCR: ${b_scr}`;
       };
 
       // Create match description
