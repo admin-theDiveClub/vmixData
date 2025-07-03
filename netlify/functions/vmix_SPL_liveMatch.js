@@ -14,7 +14,7 @@ exports.handler = async function(event, context) {
         // Build query parameters for filtering
         const queryParams = new URLSearchParams({
             'info->>status': 'eq.Live',
-            'competitions->>leagueID': "74f79467-9c26-421b-bcef-389bb40fe1ad"
+            'competitions->>leagueID': 'eq.74f79467-9c26-421b-bcef-389bb40fe1ad'
         }).toString();
 
         const options = 
