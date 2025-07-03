@@ -60,24 +60,11 @@ exports.handler = async function(event, context)
     const matches = await fetchMatches('competitions->>leagueID', '74f79467-9c26-421b-bcef-389bb40fe1ad');
     
     var allMatches = {};
-    
-    // Add headers for player stats to each round
-    const roundKey = `Round 0`;
-    allMatches[roundKey] = [
-      "         Player          | FW  | BF| Points | Player | FW | BF | Points"
-    ];
 
     matches.forEach((match, i) => {
       // Extract date from match.time.start (YYYY-MM-DD)
       const date = match.time && match.time.start ? match.time.start.split('T')[0] : 'Unknown Date';
       const roundKey = `Round ${date}`;
-
-      // Ensure header exists for each round
-      if (!allMatches[roundKey]) {
-      allMatches[roundKey] = [
-        "Player | FW | BF | Points | Player | FW | BF | Points"
-      ];
-      }
 
       // Extract player info and results
       const h = match.players && match.players.h ? match.players.h : {};
@@ -93,7 +80,7 @@ exports.handler = async function(event, context)
       const matchLine = `${h.fullName || ''} | ${hStats} | ${a.fullName || ''} ${aStats}`;
 
       // Add to allMatches (append if multiple matches)
-      allMatches[roundKey].push(`match_${i}: ${matchLine}`);
+      allMatches[roundKey].push(`${matchLine}`);
     });
 
     const data = allMatches;
