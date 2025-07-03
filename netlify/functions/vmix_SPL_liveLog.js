@@ -75,8 +75,8 @@ exports.handler = async function(event, context)
       const playerH = players.h;
 
       // Calculate points for each player
-      const pointsA = (results.a.fw || 0) + (results.a.bw || 0);
-      const pointsH = (results.h.fw || 0) + (results.h.bw || 0);
+      const pointsA = (results.a.fw || 0) + (results.a.bf || 0);
+      const pointsH = (results.h.fw || 0) + (results.h.bf || 0);
 
       // Determine match winner
       let winner = null;
@@ -103,7 +103,7 @@ exports.handler = async function(event, context)
           matchesWon: 0,
           framesPlayed: 0,
           framesWon: 0,
-          bw: 0,
+          bf: 0,
           points: 0
         };
       }
@@ -111,7 +111,7 @@ exports.handler = async function(event, context)
       if (winner === playerA.id) playerStats[playerA.id].matchesWon += 1;
       playerStats[playerA.id].framesPlayed += framesPlayed;
       playerStats[playerA.id].framesWon += framesWonA;
-      playerStats[playerA.id].bw += results.a.bw || 0;
+      playerStats[playerA.id].bf += results.a.bf || 0;
       playerStats[playerA.id].points += pointsA;
 
       // Update stats for player H
@@ -123,7 +123,7 @@ exports.handler = async function(event, context)
           matchesWon: 0,
           framesPlayed: 0,
           framesWon: 0,
-          bw: 0,
+          bf: 0,
           points: 0
         };
       }
@@ -131,7 +131,7 @@ exports.handler = async function(event, context)
       if (winner === playerH.id) playerStats[playerH.id].matchesWon += 1;
       playerStats[playerH.id].framesPlayed += framesPlayed;
       playerStats[playerH.id].framesWon += framesWonH;
-      playerStats[playerH.id].bw += results.h.bw || 0;
+      playerStats[playerH.id].bf += results.h.bf || 0;
       playerStats[playerH.id].points += pointsH;
     }
 
@@ -147,16 +147,16 @@ exports.handler = async function(event, context)
         framesPlayed: player.framesPlayed,
         framesWon: player.framesWon,
         framesWinRate: Number(framesWinRate.toFixed(3)),
-        bw: player.bw,
+        bf: player.bf,
         points: player.points
       };
     });
 
-    // Sort by points, framesWon, bw, matchesWon
+    // Sort by points, framesWon, bf, matchesWon
     matchesCleaned.sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       if (b.framesWon !== a.framesWon) return b.framesWon - a.framesWon;
-      if (b.bw !== a.bw) return b.bw - a.bw;
+      if (b.bf !== a.bf) return b.bf - a.bf;
       return b.matchesWon - a.matchesWon;
     });
 
