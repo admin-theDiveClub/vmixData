@@ -69,7 +69,7 @@ exports.handler = async function(event, context)
     matches.forEach(match => 
     {
       const status = match.info.status;
-      const date = match.time.start.split('T')[0] || "Upcoming";
+      const date = match.time ? match.time.start ? match.time.start.split('T')[0] : "Upcoming" : "Scheduled";
       if (!matchesCleaned[status][date]) matchesCleaned[status][date] = [];
       matchesCleaned[status][date].push(
       {
