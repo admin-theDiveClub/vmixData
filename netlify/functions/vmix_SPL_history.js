@@ -61,26 +61,19 @@ exports.handler = async function(event, context)
     
     var allMatches = {};
 
-    matches.forEach((match, i) => {
-      // Extract date from match.time.start (YYYY-MM-DD)
-      const date = match.time && match.time.start ? match.time.start.split('T')[0] : 'Unknown Date';
-      const roundKey = `Round ${date}`;
-
-      // Extract player info and results
-      const h = match.players && match.players.h ? match.players.h : {};
-      const a = match.players && match.players.a ? match.players.a : {};
-      const rh = match.results && match.results.h ? match.results.h : {};
-      const ra = match.results && match.results.a ? match.results.a : {};
-
-      // Format player stats
-      const hStats = `FW:${rh.fw || 0} BF:${rh.bf || 0} Points:${(rh.fw || 0) + (rh.bf || 0)}`;
-      const aStats = `FW:${ra.fw || 0} BF:${ra.bf || 0} Points:${(ra.fw || 0) + (ra.bf || 0)}`;
-
-      // Format match line
-      const matchLine = `${h.fullName || ''} | ${hStats} | ${a.fullName || ''} ${aStats}`;
-
-      // Add to allMatches (append if multiple matches)
-      allMatches[roundKey].push(`${matchLine}`);
+    matches.forEach(match => {
+      // Extract date part (YYYY-MM-DD) from match.time.start
+      const date = match.time && match.time.start ? match.time.start.split('T')[0] : 'Unknown';
+      // Get player names
+      const playerA = match.players && match.players.a ? match.players.a.fullName : 'Player A';
+      const playerH = match.players && match.players.h ? match.players.h.fullName : 'Player H';
+      // Create match description
+      const matchText = `${playerA} vs ${playerH}`;
+      // Group by date
+      if (!allMatches[date]) {
+        allMatches[date] = [];
+      }
+      allMatches[date].push(matchText);
     });
 
     const data = allMatches;
