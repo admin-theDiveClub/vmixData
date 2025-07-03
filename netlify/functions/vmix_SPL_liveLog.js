@@ -61,56 +61,109 @@ exports.handler = async function(event, context)
     
     var matchesCleaned = [];
 
-    let upcomingMatches = [];
-    let liveMatchesByDate = {};
-    let completeMatchesByDate = {};
+    const playerStats = {};
 
     for (const match of matches) {
-      const status = match.info?.status;
-      if (status === "New") {
-        upcomingMatches.push(`${match.players.h.fullName} | ${match.players.a.fullName}`);
-      } else if (status === "Live" || status === "Complete") {
-        const date = match.time?.start ? match.time.start.split('T')[0] : 'Unknown Date';
-        const row = `${match.players.h.fullName} | ${match.results.h.fw} | ${match.results.a.fw} | ${match.players.a.fullName}`;
-        if (status === "Live") {
-          if (!liveMatchesByDate[date]) liveMatchesByDate[date] = [];
-          liveMatchesByDate[date].push(row);
-        } else if (status === "Complete") {
-          if (!completeMatchesByDate[date]) completeMatchesByDate[date] = [];
-          completeMatchesByDate[date].push(row);
-        }
+      if (!match.info || !["Live", "Complete"].includes(match.info.status)) continue;
+
+      const players = match.players;
+      const results = match.results;
+      const history = match.history;
+
+      // Get player IDs and names
+      const playerA = players.a;
+      const playerH = players.h;
+
+      // Calculate points for each player
+      const pointsA = (results.a.fw || 0) + (results.a.bw || 0);
+      const pointsH = (results.h.fw || 0) + (results.h.bw || 0);
+
+      // Determine match winner
+      let winner = null;
+      if (pointsA > pointsH) winner = playerA.id;
+      else if (pointsH > pointsA) winner = playerH.id;
+
+      // Frames played
+      const framesPlayed = Object.keys(history || {}).length;
+
+      // Frames won
+      let framesWonA = 0;
+      let framesWonH = 0;
+      for (const key in history) {
+        if (history[key]["winner-player"] === "a") framesWonA++;
+        if (history[key]["winner-player"] === "h") framesWonH++;
       }
-    }
 
-    // Format upcoming matches
-    let upcomingMatchesText = '';
-    if (upcomingMatches.length) {
-      upcomingMatchesText = 'Coming Up\n' + upcomingMatches.join('\n');
-    }
-
-    // Format live matches
-    let liveMatchesText = '';
-    const liveDates = Object.keys(liveMatchesByDate);
-    if (liveDates.length) {
-      liveMatchesText = 'Live\n';
-      for (const date of liveDates) {
-        liveMatchesText += `${date}\n${liveMatchesByDate[date].join('\n')}\n`;
+      // Update stats for player A
+      if (!playerStats[playerA.id]) {
+        playerStats[playerA.id] = {
+          id: playerA.id,
+          fullName: playerA.fullName,
+          matchesPlayed: 0,
+          matchesWon: 0,
+          framesPlayed: 0,
+          framesWon: 0,
+          bw: 0,
+          points: 0
+        };
       }
-      liveMatchesText = liveMatchesText.trim();
-    }
+      playerStats[playerA.id].matchesPlayed += 1;
+      if (winner === playerA.id) playerStats[playerA.id].matchesWon += 1;
+      playerStats[playerA.id].framesPlayed += framesPlayed;
+      playerStats[playerA.id].framesWon += framesWonA;
+      playerStats[playerA.id].bw += results.a.bw || 0;
+      playerStats[playerA.id].points += pointsA;
 
-    // Format complete matches
-    let completeMatchesText = '';
-    const completeDates = Object.keys(completeMatchesByDate);
-    if (completeDates.length) {
-      completeMatchesText = 'Completed\n';
-      for (const date of completeDates) {
-        completeMatchesText += `${date}\n${completeMatchesByDate[date].join('\n')}\n`;
+      // Update stats for player H
+      if (!playerStats[playerH.id]) {
+        playerStats[playerH.id] = {
+          id: playerH.id,
+          fullName: playerH.fullName,
+          matchesPlayed: 0,
+          matchesWon: 0,
+          framesPlayed: 0,
+          framesWon: 0,
+          bw: 0,
+          points: 0
+        };
       }
-      completeMatchesText = completeMatchesText.trim();
+      playerStats[playerH.id].matchesPlayed += 1;
+      if (winner === playerH.id) playerStats[playerH.id].matchesWon += 1;
+      playerStats[playerH.id].framesPlayed += framesPlayed;
+      playerStats[playerH.id].framesWon += framesWonH;
+      playerStats[playerH.id].bw += results.h.bw || 0;
+      playerStats[playerH.id].points += pointsH;
     }
 
-    matchesCleaned = [upcomingMatchesText, liveMatchesText, completeMatchesText];
+    // Prepare cleaned array
+    matchesCleaned = Object.values(playerStats).map(player => {
+      const matchesWinRate = player.matchesPlayed > 0 ? (player.matchesWon / player.matchesPlayed) : 0;
+      const framesWinRate = player.framesPlayed > 0 ? (player.framesWon / player.framesPlayed) : 0;
+      return {
+        fullName: player.fullName,
+        matchesPlayed: player.matchesPlayed,
+        matchesWon: player.matchesWon,
+        matchesWinRate: Number(matchesWinRate.toFixed(3)),
+        framesPlayed: player.framesPlayed,
+        framesWon: player.framesWon,
+        framesWinRate: Number(framesWinRate.toFixed(3)),
+        bw: player.bw,
+        points: player.points
+      };
+    });
+
+    // Sort by points, framesWon, bw, matchesWon
+    matchesCleaned.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.framesWon !== a.framesWon) return b.framesWon - a.framesWon;
+      if (b.bw !== a.bw) return b.bw - a.bw;
+      return b.matchesWon - a.matchesWon;
+    });
+
+    // Add Rank
+    matchesCleaned.forEach((player, idx) => {
+      player.Rank = idx + 1;
+    });
 
     const data = matchesCleaned;
 
