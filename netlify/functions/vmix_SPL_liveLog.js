@@ -58,27 +58,59 @@ exports.handler = async function(event, context)
   try 
   {
     const matches = await fetchMatches('74f79467-9c26-421b-bcef-389bb40fe1ad');
-    // Build leaderboard
-    var matchesCleaned = 
-    {
-      "New": {},
-      "Live": {},
-      "Complete": {},
-    };
+    
+    var matchesCleaned = [];
 
-    matches.forEach(match => 
-    {
-      const status = match.info.status;
-      const date = match.time ? match.time.start ? match.time.start.split('T')[0] : "Upcoming" : "Scheduled";
-      if (!matchesCleaned[status][date]) matchesCleaned[status][date] = [];
-      matchesCleaned[status][date].push(
-      {
-        home: match.players.h.fullName,
-        away: match.players.a.fullName,
-        homeScore: `${match.results.h.fw ?? 0} | ${match.results.h.bf ?? 0} | ${(match.results.h.fw ?? 0) + (match.results.h.bf ?? 0)}`,
-        awayScore: `${match.results.a.fw ?? 0} | ${match.results.a.bf ?? 0} | ${(match.results.a.fw ?? 0) + (match.results.a.bf ?? 0)}`
-      });
-    });
+    let upcomingMatches = [];
+    let liveMatchesByDate = {};
+    let completeMatchesByDate = {};
+
+    for (const match of matches) {
+      const status = match.info?.status;
+      if (status === "New") {
+        upcomingMatches.push(`${match.players.h.fullName} | ${match.players.a.fullName}`);
+      } else if (status === "Live" || status === "Complete") {
+        const date = match.time?.start ? match.time.start.split('T')[0] : 'Unknown Date';
+        const row = `${match.players.h.fullName} | ${match.results.h.fw} | ${match.results.a.fw} | ${match.players.a.fullName}`;
+        if (status === "Live") {
+          if (!liveMatchesByDate[date]) liveMatchesByDate[date] = [];
+          liveMatchesByDate[date].push(row);
+        } else if (status === "Complete") {
+          if (!completeMatchesByDate[date]) completeMatchesByDate[date] = [];
+          completeMatchesByDate[date].push(row);
+        }
+      }
+    }
+
+    // Format upcoming matches
+    let upcomingMatchesText = '';
+    if (upcomingMatches.length) {
+      upcomingMatchesText = 'Coming Up\n' + upcomingMatches.join('\n');
+    }
+
+    // Format live matches
+    let liveMatchesText = '';
+    const liveDates = Object.keys(liveMatchesByDate);
+    if (liveDates.length) {
+      liveMatchesText = 'Live\n';
+      for (const date of liveDates) {
+        liveMatchesText += `${date}\n${liveMatchesByDate[date].join('\n')}\n`;
+      }
+      liveMatchesText = liveMatchesText.trim();
+    }
+
+    // Format complete matches
+    let completeMatchesText = '';
+    const completeDates = Object.keys(completeMatchesByDate);
+    if (completeDates.length) {
+      completeMatchesText = 'Completed\n';
+      for (const date of completeDates) {
+        completeMatchesText += `${date}\n${completeMatchesByDate[date].join('\n')}\n`;
+      }
+      completeMatchesText = completeMatchesText.trim();
+    }
+
+    matchesCleaned = [upcomingMatchesText, liveMatchesText, completeMatchesText];
 
     const data = matchesCleaned;
 
