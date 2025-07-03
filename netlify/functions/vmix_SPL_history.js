@@ -64,18 +64,28 @@ exports.handler = async function(event, context)
     matches.forEach(match => {
       // Extract date part (YYYY-MM-DD) from match.time.start
       const date = match.time && match.time.start ? match.time.start.split('T')[0] : 'Unknown';
-      // Get player names
+
+      // Get player info and results
       const playerA = match.players && match.players.a ? match.players.a.fullName : 'Player A';
       const playerH = match.players && match.players.h ? match.players.h.fullName : 'Player H';
-      // Get player results as stringified summary
-      const resultsA = match.results && match.results.a
-      ? `(${Object.entries(match.results.a).filter(([k]) => k !== 'breaks').map(([k, v]) => `${k}:${v}`).join(', ')})`
-      : '';
-      const resultsH = match.results && match.results.h
-      ? `(${Object.entries(match.results.h).filter(([k]) => k !== 'breaks').map(([k, v]) => `${k}:${v}`).join(', ')})`
-      : '';
-      // Create match description with results
-      const matchText = `${playerA} ${resultsA} vs ${playerH} ${resultsH}`;
+
+      const resultsA = match.results && match.results.a ? match.results.a : {};
+      const resultsH = match.results && match.results.h ? match.results.h : {};
+
+      // Extract stats for each player
+      const statString = (name, res) => {
+      const fw = res.fw ?? 0;
+      const bf = res.bf ?? 0;
+      const gb = res.gb ?? 0;
+      const b_in = res.breaks && res.breaks.in !== undefined ? res.breaks.in : 0;
+      const b_dry = res.breaks && res.breaks.dry !== undefined ? res.breaks.dry : 0;
+      const b_scr = res.breaks && res.breaks.scr !== undefined ? res.breaks.scr : 0;
+      return `${name} | ${fw} | ${bf} | ${gb} | ${b_in} | ${b_dry} | ${b_scr}`;
+      };
+
+      // Create match description
+      const matchText = `${statString(playerA, resultsA)} vs ${statString(playerH, resultsH)}`;
+
       // Group by date
       if (!allMatches[date]) {
       allMatches[date] = [];
