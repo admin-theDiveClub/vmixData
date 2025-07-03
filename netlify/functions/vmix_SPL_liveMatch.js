@@ -168,7 +168,7 @@ exports.handler = async function(event, context)
     });
 
     // Filter out leaderboard entries where player is in players array
-    const filteredLeaderboard = leaderboard.filter(player => !players.includes(player.fullName));
+    const filteredLeaderboard = leaderboard.filter(player => players.includes(player.fullName));
     data = filteredLeaderboard;
 
     const response =
