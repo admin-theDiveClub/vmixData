@@ -65,7 +65,8 @@ exports.handler = async function(event, context)
     var leaderboard = [];
     const playerStats = {};
 
-    for (const match of leagueMatches) {
+    for (const match of leagueMatches) 
+    {
       if (!match.info || !["Live", "Complete"].includes(match.info.status)) continue;
 
       const players = match.players;
@@ -92,53 +93,78 @@ exports.handler = async function(event, context)
       let framesWonA = 0;
       let framesWonH = 0;
       for (const key in history) {
-      if (history[key]["winner-player"] === "a") framesWonA++;
-      if (history[key]["winner-player"] === "h") framesWonH++;
+        if (history[key]["winner-player"] === "a") framesWonA++;
+        if (history[key]["winner-player"] === "h") framesWonH++;
       }
+
+      // Helper to get stat or 0
+      const getStat = (obj, path) => {
+        return path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : 0), obj);
+      };
 
       // Update stats for player A
       if (!playerStats[playerA.id]) {
-      playerStats[playerA.id] = {
-        id: playerA.id,
-        fullName: playerA.fullName,
-        matchesPlayed: 0,
-        matchesWon: 0,
-        framesPlayed: 0,
-        framesWon: 0,
-        bf: 0,
-        points: 0
-      };
+        playerStats[playerA.id] = {
+          id: playerA.id,
+          fullName: playerA.fullName,
+          matchesPlayed: 0,
+          matchesWon: 0,
+          framesPlayed: 0,
+          framesWon: 0,
+          bf: 0,
+          points: 0,
+          gb: 0,
+          rf: 0,
+          b_in: 0,
+          b_dry: 0,
+          b_scr: 0
+        };
       }
       if (match.info.status === "Complete") {
-      playerStats[playerA.id].matchesPlayed += 1;
-      if (winner === playerA.id) playerStats[playerA.id].matchesWon += 1;
+        playerStats[playerA.id].matchesPlayed += 1;
+        if (winner === playerA.id) playerStats[playerA.id].matchesWon += 1;
       }
       playerStats[playerA.id].framesPlayed += framesPlayed;
       playerStats[playerA.id].framesWon += framesWonA;
       playerStats[playerA.id].bf += results.a.bf || 0;
       playerStats[playerA.id].points += pointsA;
+      playerStats[playerA.id].gb += results.a.gb || 0;
+      playerStats[playerA.id].rf += results.a.rf || 0;
+      playerStats[playerA.id].b_in += getStat(results.a, ["breaks", "in"]);
+      playerStats[playerA.id].b_dry += getStat(results.a, ["breaks", "dry"]);
+      playerStats[playerA.id].b_scr += getStat(results.a, ["breaks", "scr"]);
 
       // Update stats for player H
       if (!playerStats[playerH.id]) {
-      playerStats[playerH.id] = {
-        id: playerH.id,
-        fullName: playerH.fullName,
-        matchesPlayed: 0,
-        matchesWon: 0,
-        framesPlayed: 0,
-        framesWon: 0,
-        bf: 0,
-        points: 0
-      };
+        playerStats[playerH.id] = {
+          id: playerH.id,
+          fullName: playerH.fullName,
+          matchesPlayed: 0,
+          matchesWon: 0,
+          framesPlayed: 0,
+          framesWon: 0,
+          bf: 0,
+          points: 0,
+          gb: 0,
+          rf: 0,
+          b_in: 0,
+          b_dry: 0,
+          b_scr: 0
+        };
       }
       if (match.info.status === "Complete") {
-      playerStats[playerH.id].matchesPlayed += 1;
-      if (winner === playerH.id) playerStats[playerH.id].matchesWon += 1;
+        playerStats[playerH.id].matchesPlayed += 1;
+        if (winner === playerH.id) playerStats[playerH.id].matchesWon += 1;
       }
       playerStats[playerH.id].framesPlayed += framesPlayed;
       playerStats[playerH.id].framesWon += framesWonH;
       playerStats[playerH.id].bf += results.h.bf || 0;
       playerStats[playerH.id].points += pointsH;
+      playerStats[playerH.id].gb += results.h.gb || 0;
+      playerStats[playerH.id].rf += results.h.rf || 0;
+      playerStats[playerH.id].b_in += getStat(results.h, ["breaks", "in"]);
+      playerStats[playerH.id].b_dry += getStat(results.h, ["breaks", "dry"]);
+      playerStats[playerH.id].b_scr += getStat(results.h, ["breaks", "scr"]);
     }
 
     // Prepare cleaned array
@@ -154,7 +180,12 @@ exports.handler = async function(event, context)
         framesWon: player.framesWon,
         framesWinRate: (framesWinRate * 100).toFixed(1) + '%',
         bf: player.bf,
-        points: player.points
+        points: player.points,
+        gb: player.gb,
+        rf: player.rf,
+        b_in: player.b_in,
+        b_dry: player.b_dry,
+        b_scr: player.b_scr
       };
     });
 
