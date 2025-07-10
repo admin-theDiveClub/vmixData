@@ -57,25 +57,22 @@ exports.handler = async function(event, context)
 
   try 
   {
-    const liveMatches = await fetchMatches("info->>status", "Live");
-    const livePlayers = [liveMatches[0].players.h.fullName, liveMatches[0].players.a.fullName];
-
-    const leagueMatches = await fetchMatches("competitions->>leagueID", "74f79467-9c26-421b-bcef-389bb40fe1ad");
-
+    const matches = await fetchMatches('competitions->>leagueID', '74f79467-9c26-421b-bcef-389bb40fe1ad');
+    
     var leaderboard = [];
+
     const playerStats = {};
 
-    for (const match of leagueMatches) 
-    {
+    for (const match of matches) {
       if (!match.info || !["Live", "Complete"].includes(match.info.status)) continue;
 
-      const matchPlayers = match.players;
+      const players = match.players;
       const results = match.results;
       const history = match.history;
 
       // Get player IDs and names
-      const playerA = matchPlayers.a;
-      const playerH = matchPlayers.h;
+      const playerA = players.a;
+      const playerH = players.h;
 
       // Calculate points for each player
       const pointsA = (results.a.fw || 0) + (results.a.bf || 0);
@@ -202,9 +199,7 @@ exports.handler = async function(event, context)
       player.rank = idx + 1;
     });
 
-    // Filter out leaderboard entries where player is in livePlayers array
-    const filteredLeaderboard = leaderboard.filter(player => livePlayers.includes(player.fullName));
-    data = filteredLeaderboard;
+    const data = leaderboard;
 
     const response =
     {
@@ -214,7 +209,7 @@ exports.handler = async function(event, context)
     };
 
     return response;
-
+    
   } catch (err) 
   {
     const error = 
@@ -225,4 +220,10 @@ exports.handler = async function(event, context)
     return error;
   }
 };
+
+/*
+{"leagueID": "74f79467-9c26-421b-bcef-389bb40fe1ad", "tournamentID": "0bae0f74-ef96-45d9-bdbb-fe8d20aab7d4"}
+tournament.status = "Live" / "Complete" / "New"
+
+*/
 
