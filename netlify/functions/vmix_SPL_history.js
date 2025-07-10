@@ -84,8 +84,8 @@ exports.handler = async function(event, context)
     };
 
     matches.forEach(match => {
-      // Extract date part (YYYY-MM-DD) from match.time.start
-      const date = match.time && match.time.start ? match.time.start.split('T')[0] : 'Unknown';
+      // Extract tournamentID from match.competitions.tournamentID
+      const tournamentID = match.competitions && match.competitions.tournamentID ? match.competitions.tournamentID : 'Unknown';
 
       // Get player info and results
       const playerA = match.players && match.players.a ? match.players.a.fullName : 'Player A';
@@ -97,11 +97,11 @@ exports.handler = async function(event, context)
       // Create match description with neat columns
       const matchText = `${statString(playerA, resultsA)} vs ${statString(playerH, resultsH)}`;
 
-      // Group by date
-      if (!allMatches[date]) {
-      allMatches[date] = [];
+      // Group by tournamentID
+      if (!allMatches[tournamentID]) {
+      allMatches[tournamentID] = [];
       }
-      allMatches[date].push(matchText);
+      allMatches[tournamentID].push(matchText);
     });
 
     const data = allMatches;
