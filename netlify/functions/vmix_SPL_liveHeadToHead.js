@@ -170,6 +170,7 @@ exports.handler = async function(event, context)
       const framesWinRate = player.framesPlayed > 0 ? (player.framesWon / player.framesPlayed) : 0;
       return {
         fullName: player.fullName,
+        username: player.username,
         matchesPlayed: player.matchesPlayed,
         matchesWon: player.matchesWon,
         matchesWinRate: (matchesWinRate * 100).toFixed(1),
