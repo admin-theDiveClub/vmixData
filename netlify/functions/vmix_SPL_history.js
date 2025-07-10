@@ -77,10 +77,11 @@ exports.handler = async function(event, context)
       const fw = res.fw ?? 0;
       const bf = res.bf ?? 0;
       const gb = res.gb ?? 0;
+      const rf = res.rf ?? 0;
       const b_in = res.breaks && res.breaks.in !== undefined ? res.breaks.in : 0;
       const b_dry = res.breaks && res.breaks.dry !== undefined ? res.breaks.dry : 0;
       const b_scr = res.breaks && res.breaks.scr !== undefined ? res.breaks.scr : 0;
-      return `${pad(name, maxNameLen)} | FW: ${pad(fw,2)} | BF: ${pad(bf,2)} | GB: ${pad(gb,2)} | B_IN: ${pad(b_in,2)} | B_DRY: ${pad(b_dry,2)} | B_SCR: ${pad(b_scr,2)}`;
+      return `${pad(name, maxNameLen)} | FW: ${pad(fw,2)} | BF: ${pad(bf,2)} | GB: ${pad(gb,2)} | RF: ${pad(rf,2)} | B_IN: ${pad(b_in,2)} | B_DRY: ${pad(b_dry,2)} | B_SCR: ${pad(b_scr,2)}`;
     };
 
     matches.forEach(match => {
