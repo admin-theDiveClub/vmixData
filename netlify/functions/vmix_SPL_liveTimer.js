@@ -51,6 +51,51 @@ exports.handler = async function(event, context) {
     }
   );
 
+  const fetchTimer = (_matchID) => new Promise
+  (
+    (resolve, reject) => 
+    {
+        var _table = 'tbl_timers';
+
+        // Build query parameters for filtering by matchID
+        const queryParams = new URLSearchParams({
+            matchID: `eq.${_matchID}`
+        }).toString();
+
+        const options = 
+        {
+        hostname: 'db.thediveclub.org',
+        path: `/rest/v1/${_table}?${queryParams}`,
+        method: 'GET',
+        headers: 
+        {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation'
+        }
+        };
+
+        const req = https.request(options, res => 
+        {
+            let body = '';
+            res.on('data', function(chunk) 
+            {
+            body += chunk;
+            });
+
+            res.on('end', function() 
+            {
+            const data = JSON.parse(body);
+            resolve(data);
+            });
+        });
+
+        req.on('error', err => reject(err));
+        req.end();
+    }
+  );
+
   try 
   {
     const liveMatches = await fetchMatches(); 
@@ -58,7 +103,9 @@ exports.handler = async function(event, context) {
     const match = liveMatches[0];
     const matchID = match.id;
 
-    const data = matchID;
+    const matchTimer = await fetchTimer(matchID);
+
+    const data = matchTimer;
 
 
 
