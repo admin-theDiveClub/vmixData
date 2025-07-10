@@ -58,7 +58,7 @@ exports.handler = async function(event, context)
   try 
   {
     const liveMatches = await fetchMatches("info->>status", "Live");
-    const players = [liveMatches[0].players.h.fullName, liveMatches[0].players.a.fullName];
+    const livePlayers = [liveMatches[0].players.h.fullName, liveMatches[0].players.a.fullName];
 
     const leagueMatches = await fetchMatches("competitions->>leagueID", "74f79467-9c26-421b-bcef-389bb40fe1ad");
 
@@ -69,13 +69,13 @@ exports.handler = async function(event, context)
     {
       if (!match.info || !["Live", "Complete"].includes(match.info.status)) continue;
 
-      const players = match.players;
+      const matchPlayers = match.players;
       const results = match.results;
       const history = match.history;
 
       // Get player IDs and names
-      const playerA = players.a;
-      const playerH = players.h;
+      const playerA = matchPlayers.a;
+      const playerH = matchPlayers.h;
 
       // Calculate points for each player
       const pointsA = (results.a.fw || 0) + (results.a.bf || 0);
@@ -202,8 +202,8 @@ exports.handler = async function(event, context)
       player.rank = idx + 1;
     });
 
-    // Filter out leaderboard entries where player is in players array
-    const filteredLeaderboard = leaderboard.filter(player => players.includes(player.fullName));
+    // Filter out leaderboard entries where player is in livePlayers array
+    const filteredLeaderboard = leaderboard.filter(player => livePlayers.includes(player.fullName));
     data = filteredLeaderboard;
 
     const response =
