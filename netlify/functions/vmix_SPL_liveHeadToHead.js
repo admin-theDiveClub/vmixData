@@ -200,9 +200,15 @@ exports.handler = async function(event, context)
     });
 
     const liveMatches = matches.filter(match => match.info && match.info.status === "Live");
-  
+    const livePlayers = liveMatches[0].players;
 
-    const data = liveMatches;
+    // Filter leaderboard for livePlayers by fullName
+    const liveHeadToHead = [
+      leaderboard.find(player => player.fullName === livePlayers.h.fullName),
+      leaderboard.find(player => player.fullName === livePlayers.a.fullName)
+    ];
+
+    const data = liveHeadToHead;
 
     const response =
     {
