@@ -204,7 +204,11 @@ exports.handler = async function(event, context)
       [match.players.h, match.players.a]
     );
 
-    const data = livePlayers;
+    const liveHeadToHead = leaderboard.filter(player =>
+      livePlayers.some(livePlayer => livePlayer.username === player.username)
+    );
+
+    const data = liveHeadToHead;
 
     const response =
     {
