@@ -199,7 +199,12 @@ exports.handler = async function(event, context)
       player.rank = idx + 1;
     });
 
-    const data = leaderboard;
+    const liveMatches = matches.filter(match => match.info && match.info.status === "Live");
+    const livePlayers = liveMatches.flatMap(match => 
+      [match.players.h, match.players.a]
+    );
+
+    const data = livePlayers;
 
     const response =
     {
@@ -220,10 +225,4 @@ exports.handler = async function(event, context)
     return error;
   }
 };
-
-/*
-{"leagueID": "74f79467-9c26-421b-bcef-389bb40fe1ad", "tournamentID": "0bae0f74-ef96-45d9-bdbb-fe8d20aab7d4"}
-tournament.status = "Live" / "Complete" / "New"
-
-*/
 
